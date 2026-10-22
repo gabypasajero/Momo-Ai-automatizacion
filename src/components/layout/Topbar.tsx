@@ -1,6 +1,7 @@
 'use client'
 
-import { Bell, ClipboardList, LogOut, MessageCircle } from 'lucide-react'
+import { Bell, ClipboardList, KeyRound, LogOut, MessageCircle } from 'lucide-react'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { findModule } from '@/config/navigation'
 
@@ -36,6 +37,11 @@ export function Topbar({ organizationName, userInitials, signOutAction }: {
           </button>
         ))}
         <span className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 text-xs font-semibold text-white">{userInitials}</span>
+        {signOutAction && (
+          <Link href="/restablecer" aria-label="Cambiar contraseña" title="Cambiar contraseña" className="rounded-lg p-1.5 text-muted hover:bg-surface hover:text-ink">
+            <KeyRound className="h-4 w-4" aria-hidden />
+          </Link>
+        )}
         {signOutAction && (
           <form action={signOutAction}>
             <button type="submit" aria-label="Cerrar sesión" title="Cerrar sesión" className="rounded-lg p-1.5 text-muted hover:bg-surface hover:text-ink">
