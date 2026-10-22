@@ -6,7 +6,7 @@ const config: Config = {
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
     extend: {
-      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      fontFamily: { sans: ['var(--font-sans)', 'Nunito', 'system-ui', 'sans-serif'], display: ['var(--font-display)', 'Quicksand', 'sans-serif'] },
       // Paleta DTO definida como variables CSS (src/index.css) para permitir marca blanca por empresa.
       colors: {
         brand: {

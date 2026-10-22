@@ -34,7 +34,10 @@ export const getCurrentUser = cache(async () => {
   if (!isSupabaseConfigured) return null
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
-  return user ? { email: user.email ?? '', name: (user.user_metadata?.full_name as string | undefined) ?? user.email ?? '' } : null
+  if (!user) return null
+  const { data } = await supabase.from('members').select('display_name').eq('user_id', user.id).not('display_name', 'is', null).limit(1).maybeSingle()
+  const name = data?.display_name ?? (user.user_metadata?.full_name as string | undefined) ?? user.email ?? ''
+  return { email: user.email ?? '', name }
 })
 
 export type * from './types'

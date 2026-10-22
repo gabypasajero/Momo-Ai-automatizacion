@@ -4,31 +4,33 @@
 
 /* Paleta DTO (DeToditoOutlet). Cada empresa puede sobrescribir estas variables para su marca blanca. */
 :root {
-  --brand-50: 246 245 255;
-  --brand-100: 240 237 255;
-  --brand-200: 221 216 253;
-  --brand-300: 193 184 250;
-  --brand-400: 154 140 242;
-  --brand-500: 117 101 232; /* #7565e8 */
-  --brand-600: 97 80 214;
-  --brand-700: 80 64 181;
-  --brand-800: 65 52 143;
-  --brand-900: 47 39 102;
-  --accent: 79 141 247;      /* #4f8df7 */
-  --ink: 29 36 51;           /* #1d2433 */
-  --muted: 92 101 119;       /* #5c6577 · 5,9:1 sobre blanco (antes #778197, 3,9:1) */
-  --line: 231 235 242;       /* #e7ebf2 */
-  --surface: 245 247 251;    /* #f5f7fb */
-  --success: 15 108 74;      /* #0f6c4a · legible sobre success-soft */
-  --success-soft: 232 248 240;
-  --success-chart: 45 186 132;
-  --danger: 172 56 68;       /* #ac3844 · legible sobre danger-soft */
+  /* Paleta de detoditooutlet.cl (estilos.css de la tienda). Cada empresa puede sobrescribirla (marca blanca). */
+  --brand-50: 255 243 246;   /* #FFF3F6 */
+  --brand-100: 247 217 226;  /* #F7D9E2 rosa claro */
+  --brand-200: 240 188 205;
+  --brand-300: 227 147 174;
+  --brand-400: 207 106 142;
+  --brand-500: 189 74 115;
+  --brand-600: 168 50 94;    /* #A8325E rosa DTO (botones principales) */
+  --brand-700: 140 41 80;
+  --brand-800: 110 32 64;
+  --brand-900: 79 23 46;
+  --accent: 142 108 201;     /* lila del banner "Diseña tu mueble" */
+  --ink: 58 42 51;           /* #3A2A33 */
+  --muted: 112 86 99;        /* #705663 · 6,4:1 sobre blanco */
+  --line: 242 220 225;       /* #F2DCE1 */
+  --surface: 255 248 246;    /* #FFF8F6 fondo crema */
+  --success: 30 122 76;      /* #1E7A4C verde DTO */
+  --success-soft: 221 242 230; /* #DDF2E6 */
+  --success-chart: 63 163 111;
+  --danger: 163 38 42;       /* #A3262A */
   --danger-soft: 255 240 241;
-  --warning: 165 107 19;     /* #a56b13 */
+  --warning: 140 88 14;
   --warning-soft: 255 246 223;
   --warning-chart: 240 160 70;
 }
 
 body { @apply bg-surface text-ink antialiased; }
+h1, h2, h3 { font-family: var(--font-display), var(--font-sans), sans-serif; }
 .scroll-thin::-webkit-scrollbar { height: 8px; width: 8px; }
 .scroll-thin::-webkit-scrollbar-thumb { @apply bg-line rounded-full; }

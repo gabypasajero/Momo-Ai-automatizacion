@@ -89,7 +89,7 @@ async function actualizar() {
   await chrome.storage.local.set({ embudo })
   const pendientes = embudo.estado === 'ok' ? embudo.chats.filter((c) => c.etapa?.humano || !c.iaActiva).length : 0
   await chrome.action.setBadgeText({ text: pendientes ? String(pendientes) : '' })
-  await chrome.action.setBadgeBackgroundColor({ color: '#ac3844' })
+  await chrome.action.setBadgeBackgroundColor({ color: '#A3262A' })
   return embudo
 }
 

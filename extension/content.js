@@ -16,39 +16,39 @@
   sombra.innerHTML = `
     <style>
       :host { all: initial; }
-      * { box-sizing: border-box; font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif; }
-      .caja { position: fixed; top: 12px; left: 12px; z-index: 2147483647; color: #1d2433; }
+      * { box-sizing: border-box; font-family: Nunito, system-ui, -apple-system, Segoe UI, sans-serif; }
+      .caja { position: fixed; top: 12px; left: 12px; z-index: 2147483647; color: #3A2A33; }
       .boton { width: 44px; height: 44px; border: 0; border-radius: 14px; cursor: pointer; color: #fff; font-weight: 700; font-size: 18px;
-        background: linear-gradient(135deg, #7565e8, #4f8df7); box-shadow: 0 6px 18px rgba(117, 101, 232, .4); position: relative; }
-      .boton:focus-visible, button:focus-visible, .chat:focus-visible { outline: 2px solid #4f8df7; outline-offset: 2px; }
+        background: linear-gradient(135deg, #A8325E, #8E6CC9); box-shadow: 0 6px 18px rgba(168, 50, 94, .35); position: relative; }
+      .boton:focus-visible, button:focus-visible, .chat:focus-visible { outline: 2px solid #8E6CC9; outline-offset: 2px; }
       .contador { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px;
-        background: #ac3844; color: #fff; font-size: 11px; line-height: 20px; font-weight: 700; border: 2px solid #fff; }
+        background: #A3262A; color: #fff; font-size: 11px; line-height: 20px; font-weight: 700; border: 2px solid #fff; }
       .panel { margin-top: 8px; width: 340px; max-height: min(560px, calc(100vh - 80px)); display: flex; flex-direction: column;
-        background: #fff; border: 1px solid #e7ebf2; border-radius: 16px; box-shadow: 0 12px 36px rgba(31, 43, 73, .18); overflow: hidden; }
-      .cabeza { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid #e7ebf2; }
+        background: #fff; border: 1px solid #F2DCE1; border-radius: 16px; box-shadow: 0 12px 36px rgba(31, 43, 73, .18); overflow: hidden; }
+      .cabeza { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid #F2DCE1; }
       .cabeza h2 { margin: 0; font-size: 14px; font-weight: 700; flex: 1; }
-      .mini { border: 1px solid #e7ebf2; background: #fff; border-radius: 8px; padding: 4px 8px; font-size: 12px; cursor: pointer; color: #1d2433; }
-      .mini:hover { background: #f5f7fb; }
-      .etapas { display: flex; gap: 6px; padding: 10px 14px; overflow-x: auto; border-bottom: 1px solid #e7ebf2; }
-      .etapa { flex: none; border: 1px solid #e7ebf2; background: #f5f7fb; border-radius: 999px; padding: 4px 10px; font-size: 12px; cursor: pointer; color: #1d2433; }
-      .etapa[aria-pressed="true"] { background: #7565e8; border-color: #7565e8; color: #fff; }
+      .mini { border: 1px solid #F2DCE1; background: #fff; border-radius: 8px; padding: 4px 8px; font-size: 12px; cursor: pointer; color: #3A2A33; }
+      .mini:hover { background: #FFF8F6; }
+      .etapas { display: flex; gap: 6px; padding: 10px 14px; overflow-x: auto; border-bottom: 1px solid #F2DCE1; }
+      .etapa { flex: none; border: 1px solid #F2DCE1; background: #FFF8F6; border-radius: 999px; padding: 4px 10px; font-size: 12px; cursor: pointer; color: #3A2A33; }
+      .etapa[aria-pressed="true"] { background: #A8325E; border-color: #A8325E; color: #fff; }
       .lista { overflow-y: auto; margin: 0; padding: 0; list-style: none; }
-      .chat { width: 100%; display: flex; gap: 10px; text-align: left; padding: 10px 14px; border: 0; border-bottom: 1px solid #f0f2f6; background: #fff; cursor: pointer; }
-      .chat:hover { background: #f6f5ff; }
-      .avatar { flex: none; width: 34px; height: 34px; border-radius: 50%; background: #1d2433; color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 13px; position: relative; }
+      .chat { width: 100%; display: flex; gap: 10px; text-align: left; padding: 10px 14px; border: 0; border-bottom: 1px solid #F7E8EC; background: #fff; cursor: pointer; }
+      .chat:hover { background: #FFF3F6; }
+      .avatar { flex: none; width: 34px; height: 34px; border-radius: 50%; background: #3A2A33; color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 13px; position: relative; }
       .canal { position: absolute; right: -2px; bottom: -2px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; }
       .cuerpo { min-width: 0; flex: 1; }
       .fila { display: flex; align-items: center; gap: 6px; }
       .nombre { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .hora { margin-left: auto; font-size: 11px; color: #5c6577; flex: none; }
-      .texto { font-size: 12px; color: #5c6577; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 2px 0 4px; }
+      .hora { margin-left: auto; font-size: 11px; color: #705663; flex: none; }
+      .texto { font-size: 12px; color: #705663; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 2px 0 4px; }
       .sello { font-size: 10px; font-weight: 600; border-radius: 999px; padding: 1px 7px; }
-      .humano { background: #fff0f1; color: #ac3844; }
-      .ia { background: #e8f8f0; color: #0f6c4a; }
-      .tag { background: #f0edff; color: #5040b5; }
-      .punto { width: 8px; height: 8px; border-radius: 50%; background: #7565e8; flex: none; }
-      .aviso { padding: 18px 14px; font-size: 13px; color: #5c6577; line-height: 1.45; }
-      .pie { padding: 8px 14px; font-size: 11px; color: #5c6577; border-top: 1px solid #e7ebf2; }
+      .humano { background: #fff0f1; color: #A3262A; }
+      .ia { background: #DDF2E6; color: #1E7A4C; }
+      .tag { background: #F7D9E2; color: #8C2950; }
+      .punto { width: 8px; height: 8px; border-radius: 50%; background: #A8325E; flex: none; }
+      .aviso { padding: 18px 14px; font-size: 13px; color: #705663; line-height: 1.45; }
+      .pie { padding: 8px 14px; font-size: 11px; color: #705663; border-top: 1px solid #F2DCE1; }
       [hidden] { display: none !important; }
     </style>
     <div class="caja">

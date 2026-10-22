@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Nunito, Quicksand } from 'next/font/google'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'], display: 'swap' })
+// Mismas tipografías que detoditooutlet.cl: Nunito para texto y Quicksand para títulos.
+const nunito = Nunito({ subsets: ['latin'], display: 'swap', variable: '--font-sans' })
+const quicksand = Quicksand({ subsets: ['latin'], weight: ['600', '700'], display: 'swap', variable: '--font-display' })
 
 export const metadata: Metadata = {
   title: { default: 'Momo AI', template: '%s · Momo AI' },
@@ -12,7 +14,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es-CL">
-      <body className={inter.className}>{children}</body>
+      <body className={`${nunito.variable} ${quicksand.variable} font-sans`}>{children}</body>
     </html>
   )
 }

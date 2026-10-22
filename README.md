@@ -42,6 +42,6 @@ Burbuja con el embudo en la esquina superior izquierda de cualquier página y ac
 - Base de datos: `supabase/migrations/` (esquema) y `supabase/seed/` (datos del piloto)
 
 ## Marca
-La paleta DTO (morado `#7565e8`, azul `#4f8df7`, tinta `#1d2433`) vive como variables CSS en `src/app/globals.css` y como colores semánticos en `tailwind.config.ts` (`brand`, `accent`, `ink`, `muted`, `line`, `surface`, `success`, `danger`, `warning`). Para dar marca blanca a una empresa basta con cambiar esas variables.
+La paleta de detoditooutlet.cl (rosa `#A8325E`, fondo `#FFF8F6`, tinta `#3A2A33`, verde `#1E7A4C`; tipografías Nunito y Quicksand) vive como variables CSS en `src/app/globals.css` y como colores semánticos en `tailwind.config.ts` (`brand`, `accent`, `ink`, `muted`, `line`, `surface`, `success`, `danger`, `warning`). Para dar marca blanca a una empresa basta con cambiar esas variables.
 
 El prototipo estático original quedó en `legacy/`.
