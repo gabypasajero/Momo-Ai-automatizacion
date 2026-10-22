@@ -108,3 +108,22 @@ export interface AnalyticsSummary {
 }
 
 export type PlanId = 'emprende' | 'pyme' | 'empresa' | 'corporativo'
+
+export interface Product {
+  id: string
+  name: string
+  category: string | null
+  description: string | null
+  dimensions: string | null
+  priceClp: number
+  salePriceClp: number | null
+  imageUrl: string | null
+  sourceUrl: string | null
+  customizable: boolean
+}
+
+export interface KnowledgeEntry {
+  id: string
+  title: string
+  content: string
+}

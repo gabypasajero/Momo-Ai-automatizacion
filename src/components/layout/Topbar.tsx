@@ -1,10 +1,15 @@
 'use client'
 
-import { Bell, ClipboardList, MessageCircle } from 'lucide-react'
+import { Bell, ClipboardList, LogOut, MessageCircle } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { findModule } from '@/config/navigation'
 
-export function Topbar({ organizationName, userInitials }: { organizationName: string; userInitials: string }) {
+export function Topbar({ organizationName, userInitials, signOutAction }: {
+  organizationName: string
+  userInitials: string
+  /** Server action de cierre de sesión; ausente en modo demo. */
+  signOutAction?: () => Promise<void>
+}) {
   const current = findModule(usePathname())
   const crumbs = current?.breadcrumb ?? [current?.label ?? 'Inicio']
 
@@ -31,6 +36,13 @@ export function Topbar({ organizationName, userInitials }: { organizationName: s
           </button>
         ))}
         <span className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 text-xs font-semibold text-white">{userInitials}</span>
+        {signOutAction && (
+          <form action={signOutAction}>
+            <button type="submit" aria-label="Cerrar sesión" title="Cerrar sesión" className="rounded-lg p-1.5 text-muted hover:bg-surface hover:text-ink">
+              <LogOut className="h-4 w-4" aria-hidden />
+            </button>
+          </form>
+        )}
       </div>
     </header>
   )

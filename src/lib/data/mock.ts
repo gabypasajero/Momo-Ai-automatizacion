@@ -1,5 +1,5 @@
 import type { Repository } from './repository'
-import type { AnalyticsSummary, Assistant, ChannelAccount, Contact, Conversation, Pipeline, Ticket } from './types'
+import type { AnalyticsSummary, Assistant, ChannelAccount, Contact, Conversation, KnowledgeEntry, Pipeline, Product, Ticket } from './types'
 
 /** Datos de prueba realistas en español y CLP. Se reemplazan por Supabase. */
 
@@ -131,6 +131,17 @@ const analytics: AnalyticsSummary = {
   resolution: { aiPercent: 61.1, humanPercent: 38.9 },
 }
 
+const products: Product[] = [
+  { id: 'p1', name: 'Mueble de cocina con encimera 3 quemadores tamaño M', category: 'Muebles de cocina', description: '2 puertas, 3 cajones y encimera integrada de 3 hornillas.', dimensions: '55 × 110 × 90 cm', priceClp: 209990, salePriceClp: 169990, imageUrl: null, sourceUrl: null, customizable: false },
+  { id: 'p2', name: 'Cómoda 4 cajones · Diseño 07', category: 'comodas', description: '4 cajones con diseño temático.', dimensions: '37 × 70 × 78 cm', priceClp: 59990, salePriceClp: null, imageUrl: null, sourceUrl: null, customizable: true },
+  { id: 'p3', name: 'Clóset 2 puertas 4 cajones personalizable', category: 'closets', description: 'Melamina blanca con tu imagen en el frente.', dimensions: '40 × 80 × 170 cm', priceClp: 99990, salePriceClp: null, imageUrl: null, sourceUrl: null, customizable: true },
+]
+
+const knowledge: KnowledgeEntry[] = [
+  { id: 'k1', title: 'Disponibilidad', content: 'Somos fabricantes: todo el catálogo está siempre disponible porque se fabrica a pedido.' },
+  { id: 'k2', title: 'Despacho', content: 'Despachamos dentro de Santiago. El costo depende de la comuna y se confirma antes de pagar.' },
+]
+
 export const mockRepository: Repository = {
   getOrganization: async () => ({ id: 'org_demo', name: 'Muebles y Hogar', plan: 'pyme' }),
   getPipelines: async () => pipelines,
@@ -140,4 +151,10 @@ export const mockRepository: Repository = {
   getAssistants: async () => assistants,
   getChannelAccounts: async () => channelAccounts,
   getAnalyticsSummary: async () => analytics,
+  getProducts: async (query) => {
+    const q = query?.toLowerCase().trim()
+    const items = q ? products.filter((p) => `${p.name} ${p.description}`.toLowerCase().includes(q)) : products
+    return { items, total: items.length }
+  },
+  getKnowledge: async () => knowledge,
 }

@@ -27,7 +27,7 @@ export const MODULES: ModuleNav[] = [
   {
     label: 'Asistente', href: '/asistentes', icon: Bot, breadcrumb: ['Asistente', 'Asistentes'],
     submenu: [
-      { group: 'Entrenar IA', items: [{ label: 'Asistentes', href: '/asistentes', icon: Bot }, soon('Conocimiento', BookOpen)] },
+      { group: 'Entrenar IA', items: [{ label: 'Asistentes', href: '/asistentes', icon: Bot }, { label: 'Conocimiento', href: '/asistentes/conocimiento', icon: BookOpen }] },
       { group: 'Probar IA', items: [soon('Playground', FlaskConical), soon('Evaluaciones', Pencil)] },
       { group: 'Librerías', items: [soon('Bloques', Puzzle), soon('Funciones', Code2)] },
       { group: 'Ajustes', items: [soon('Ajustes de IA', SlidersHorizontal)] },

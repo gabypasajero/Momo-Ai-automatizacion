@@ -1,5 +1,5 @@
 import type {
-  AnalyticsSummary, Assistant, ChannelAccount, Contact, Conversation, Organization, Pipeline, Ticket,
+  AnalyticsSummary, Assistant, ChannelAccount, Contact, Conversation, KnowledgeEntry, Organization, Pipeline, Product, Ticket,
 } from './types'
 
 /**
@@ -15,4 +15,7 @@ export interface Repository {
   getAssistants(): Promise<Assistant[]>
   getChannelAccounts(): Promise<ChannelAccount[]>
   getAnalyticsSummary(): Promise<AnalyticsSummary>
+  /** Catálogo; con `query` usa la búsqueda de texto en español. */
+  getProducts(query?: string): Promise<{ items: Product[]; total: number }>
+  getKnowledge(): Promise<KnowledgeEntry[]>
 }

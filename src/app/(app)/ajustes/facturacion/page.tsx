@@ -5,6 +5,7 @@ import { getRepository } from '@/lib/data'
 export const metadata: Metadata = { title: 'Plan y facturación' }
 
 export default async function FacturacionPage() {
-  const organization = await getRepository().getOrganization()
+  const repo = await getRepository()
+  const organization = await repo.getOrganization()
   return <PlanGrid currentPlan={organization.plan} />
 }

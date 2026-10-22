@@ -11,6 +11,8 @@ CRM omnicanal con IA para vender por **Facebook (Messenger y Marketplace), Whats
 | `/embudo` | Kanban de ventas con arrastrar y soltar, filtros por canal y totales en CLP |
 | `/chat` | Bandeja omnicanal con pausa/activación de la IA por conversación |
 | `/asistentes` | Asistentes de IA |
+| `/asistentes/conocimiento` | Políticas del negocio y catálogo con búsqueda en español |
+| `/login` | Ingreso (solo en modo real) |
 | `/crm` | Clientes |
 | `/canales` | Cuentas conectadas y asociación de canales a embudos |
 | `/analitica` | KPIs, cobertura de IA, mapa de calor, ruta del ticket, IA vs humano |
@@ -25,7 +27,7 @@ npm run typecheck
 npm run build
 ```
 
-Variables de entorno: copia `.env.example` como `.env.local` (todavía no son necesarias con los datos de prueba).
+Sin variables de entorno la app corre en **modo demo** (datos de prueba, sin login). Para conectarla a Supabase sigue [docs/puesta-en-marcha.md](docs/puesta-en-marcha.md).
 
 ## Despliegue
 Importa el repositorio en Vercel; detecta Next.js automáticamente.

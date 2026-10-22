@@ -5,5 +5,6 @@ import { getRepository } from '@/lib/data'
 export const metadata: Metadata = { title: 'Asistentes' }
 
 export default async function AsistentesPage() {
-  return <AssistantGallery assistants={await getRepository().getAssistants()} />
+  const repo = await getRepository()
+  return <AssistantGallery assistants={await repo.getAssistants()} />
 }

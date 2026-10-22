@@ -5,5 +5,6 @@ import { getRepository } from '@/lib/data'
 export const metadata: Metadata = { title: 'Analítica' }
 
 export default async function AnaliticaPage() {
-  return <AnalyticsDashboard summary={await getRepository().getAnalyticsSummary()} />
+  const repo = await getRepository()
+  return <AnalyticsDashboard summary={await repo.getAnalyticsSummary()} />
 }

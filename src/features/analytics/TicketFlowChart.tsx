@@ -4,6 +4,14 @@ import type { AnalyticsSummary } from '@/lib/data/types'
 /** Diagrama tipo Sankey simplificado: Inicial → etapas de destino. */
 export function TicketFlowChart({ flow }: { flow: AnalyticsSummary['ticketFlow'] }) {
   const total = flow.reduce((s, f) => s + f.count, 0)
+  if (total === 0) {
+    return (
+      <Card className="p-5">
+        <h3 className="mb-2 text-sm font-medium">Ruta del ticket</h3>
+        <p className="py-16 text-center text-sm text-muted">Aún no hay tickets en los últimos 30 días.</p>
+      </Card>
+    )
+  }
   const source = { y: 90, h: 120 }
   let targetY = 10
   let sourceY = source.y
