@@ -52,8 +52,27 @@ Prueba real: "cocina horno" devuelve el *Mueble de cocina L con horno, encimera 
 
 Próximo paso: convertir esto en una sincronización automática diaria (cron) para que los precios de la IA estén siempre al día.
 
-## Conocimiento cargado (DTO)
+## Modelo de negocio (lo que Momo debe saber)
 
-Quiénes somos · Despacho (solo RM, costo según comuna, sin armado) · Retiro en Tupungato 9059, La Granja (lun–sáb 9:30–18:30) · Cómo comprar y medios de pago · Muebles personalizados (imagen JPG/PNG, 1–3 días hábiles tras aprobar) · Garantía y devoluciones (garantía legal 6 meses, retracto 10 días salvo personalizados, disconformidad 30 días en estándar) · Contacto (WhatsApp +56 9 3171 9740, redes@detoditooutlet.cl).
+- **Somos fabricantes.** Muebles y Hogar Molina SpA fabrica todo; De Todito Outlet es su canal de venta (Rachel) y usa el mismo catálogo.
+- **Todo está siempre disponible:** se fabrica a pedido. La IA nunca dice "agotado".
+- **Personalizados:** siempre disponibles; el diseño se aplica con adhesivo ploteado. Para clósets y cómodas, la IA invita a usar el diseñador de detoditooutlet.cl ("Diseñar ahora").
+- **A medida y fuera de catálogo** (ej. muebles de cocina a medida): la IA reúne medidas, color, comuna y foto, mueve el ticket a la etapa `custom` y **deriva siempre** al **Área de Diseño (+56 9 5746 4151)** o a **Rachel (+56 9 3171 9740)**. Nunca da precio de un proyecto a medida.
+- Palabras del dueño: *"Ahora somos versátiles: podemos fabricar lo que el cliente desea, siempre que esté al alcance de la empresa."*
 
-El asistente "Asistente Ventas DTO" tiene instrucciones para no inventar precios, no confirmar stock ni costo de despacho como definitivos y derivar a Rachel cuando el cliente quiere pagar, reclama o pide algo fuera del catálogo.
+## Conocimiento cargado
+
+| Entrada | DTO | Molina |
+|---|---|---|
+| Quiénes somos (fabricantes) | ✔ | ✔ |
+| Disponibilidad (fabricación a pedido) | ✔ | ✔ |
+| Muebles personalizados con diseño | ✔ | ✔ |
+| Diseñador online | ✔ | ✔ |
+| Proyectos a medida y área de diseño | ✔ | ✔ |
+| Despacho · Retiro y horario · Cómo comprar · Garantía y devoluciones · Contacto | ✔ | Retiro y garantía |
+
+Pendiente: **tabla de costos de despacho por comuna** (la entrega el equipo). Con ella la IA podrá cotizar el total.
+
+## Búsqueda por diseño
+
+Los productos personalizables de DTO incluyen el nombre del diseño en su descripción ("Diseño: Spidey and his amazing friends"), así que un cliente que busca "spidey" encuentra la *Cocina infantil · Diseño 06*.
