@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DeToditoOutlet | Centro de ventas</title>
+<meta name="description" content="Panel de atención y conversión de ventas por redes sociales para DeToditoOutlet.">
+<style>
+:root{
+ --bg:#f5f7fb;--panel:#fff;--ink:#1d2433;--muted:#778197;--line:#e7ebf2;
+ --purple:#7565e8;--purple-soft:#f0edff;--blue:#eaf3ff;--green:#16845b;
+ --green-soft:#e8f8f0;--red:#c64d58;--red-soft:#fff0f1;--amber:#a56b13;--amber-soft:#fff6df;
+ --shadow:0 8px 28px rgba(31,43,73,.06);--radius:16px;
+}
+*{box-sizing:border-box} body{margin:0;font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+button,input,select,textarea{font:inherit} button{cursor:pointer}
+.app{display:grid;grid-template-columns:78px 240px minmax(0,1fr);min-height:100vh}
+.rail{background:#fff;border-right:1px solid var(--line);padding:16px 10px;display:flex;align-items:center;flex-direction:column;gap:8px;position:sticky;top:0;height:100vh}
+.logo{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#7565e8,#4f8df7);display:grid;place-items:center;color:white;font-weight:900;font-size:18px;margin-bottom:16px;box-shadow:0 6px 16px #7565e833}
+.railbtn{width:54px;min-height:52px;border:0;background:transparent;border-radius:13px;color:#7b8497;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px}
+.railbtn .ico{font-size:19px;line-height:1.1}.railbtn.active{background:var(--purple-soft);color:var(--purple);font-weight:700}
+.subnav{background:#fff;border-right:1px solid var(--line);padding:22px 15px;min-width:0}
+.workspace-label{font-size:11px;color:#98a0af;font-weight:800;letter-spacing:.09em;margin:6px 8px 10px}
+.workspace{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;display:flex;align-items:center;gap:9px;text-align:left;font-weight:700;margin-bottom:24px}
+.workspace .avatar{width:30px;height:30px;border-radius:9px;background:#fce8d5;display:grid;place-items:center}
+.navlink{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:10px;color:#687286;text-decoration:none;margin:3px 0;font-weight:550}
+.navlink .ico{width:20px;text-align:center;font-size:17px}.navlink.active{background:var(--purple-soft);color:#5e50d2;font-weight:750}
+.navlink:hover,.railbtn:hover{background:#f6f5ff}
+.subnav-bottom{margin-top:28px;border-top:1px solid var(--line);padding-top:16px}
+.main{min-width:0;padding:24px clamp(14px,2vw,30px) 36px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}
+.crumb{color:var(--muted);font-size:12px;margin-bottom:4px}.page-title{font-size:25px;letter-spacing:-.04em;margin:0;font-weight:800}
+.top-actions{display:flex;align-items:center;gap:9px}.iconbtn{width:39px;height:39px;border:1px solid var(--line);background:#fff;border-radius:12px;color:#647087;display:grid;place-items:center}
+.user{display:flex;align-items:center;gap:9px;padding-left:8px}.user-avatar{width:36px;height:36px;border-radius:50%;background:#d9e7ff;color:#3f5ca7;display:grid;place-items:center;font-weight:800}
+.statusline{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:12px}.dot{width:8px;height:8px;background:#26b47b;border-radius:50%;display:inline-block}
+.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.search{position:relative;flex:1;min-width:180px;max-width:350px}.search input{width:100%;height:42px;border:1px solid var(--line);border-radius:12px;padding:0 14px 0 38px;background:#fff;outline:none}.search:before{content:"⌕";position:absolute;left:13px;top:7px;font-size:23px;color:#8c95a7}
+.select,.filterbtn{height:42px;border:1px solid var(--line);border-radius:12px;background:#fff;color:#5f687a;padding:0 12px}
+.primary{background:var(--purple);border:0;color:white;border-radius:12px;padding:12px 16px;font-weight:750;box-shadow:0 6px 14px #7565e82b}.primary:hover{background:#6555d7}
+.tabs{display:flex;align-items:center;gap:4px;background:#eceff5;border-radius:12px;padding:4px}.tab{border:0;background:transparent;padding:8px 13px;border-radius:9px;color:#737d90}.tab.active{background:#fff;color:#252b3a;font-weight:750;box-shadow:0 2px 7px #18223b0d}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:20px}
+.metric{background:#fff;border:1px solid var(--line);border-radius:15px;padding:16px;box-shadow:0 3px 10px #1d243306}
+.metric-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px}.metric-icon{width:31px;height:31px;border-radius:10px;background:var(--purple-soft);display:grid;place-items:center;color:var(--purple)}
+.metric-value{font-size:25px;font-weight:850;letter-spacing:-.04em;margin:7px 0 2px}.metric-foot{font-size:11px;color:var(--green)}
+.boardhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:22px 0 12px}.boardhead h2{font-size:16px;margin:0}.boardhead p{margin:3px 0 0;color:var(--muted);font-size:12px}
+.board{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:12px;align-items:start;overflow-x:auto;padding-bottom:12px}
+.lane{min-width:220px;background:#edf0f6;border:1px solid #e6e9f0;border-radius:15px;padding:10px;min-height:390px}
+.lane-head{display:flex;align-items:center;justify-content:space-between;padding:4px 3px 12px}.lane-name{font-weight:800;font-size:12px;display:flex;align-items:center;gap:7px}.lane-count{background:#fff;border:1px solid #e1e5ee;border-radius:8px;padding:2px 7px;color:#788196;font-size:11px}
+.lane-dot{width:8px;height:8px;border-radius:50%;background:#a5aabd}.lane:nth-child(2) .lane-dot{background:#7b6af1}.lane:nth-child(3) .lane-dot{background:#2798db}.lane:nth-child(4) .lane-dot{background:#20a875}
+.ticket{background:#fff;border:1px solid #e6e9f0;border-radius:12px;padding:12px;margin-bottom:9px;box-shadow:0 3px 7px #26365705;cursor:pointer;transition:transform .15s,border .15s}.ticket:hover{transform:translateY(-2px);border-color:#c9c2ff}
+.ticket-top{display:flex;align-items:center;justify-content:space-between;gap:7px}.customer{display:flex;align-items:center;gap:7px;font-weight:800;font-size:12px;min-width:0}.customer-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mini-avatar{width:27px;height:27px;border-radius:9px;background:#e8efff;display:grid;place-items:center;color:#5368a5;font-size:11px;flex-shrink:0}.channel{font-size:12px;color:#8791a3}.ticket p{font-size:12px;color:#596478;line-height:1.5;margin:10px 0}.ticket-bottom{display:flex;align-items:center;justify-content:space-between;gap:5px;border-top:1px solid #f0f2f6;padding-top:9px;color:#929aab;font-size:10px}
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:4px 7px;font-size:10px;font-weight:750;white-space:nowrap}.pill.ai{background:var(--green-soft);color:var(--green)}.pill.human{background:var(--amber-soft);color:var(--amber)}.pill.new{background:var(--red-soft);color:var(--red)}.pill.neutral{background:#f0f2f7;color:#657087}
+.ticket-actions{display:flex;gap:5px}.tiny{border:0;background:#f4f5fa;color:#778197;border-radius:6px;padding:4px 6px;font-size:11px}.tiny:hover{background:var(--purple-soft);color:var(--purple)}
+.footer-note{color:#8a93a4;font-size:11px;margin-top:12px}
+.overlay{position:fixed;inset:0;background:#10182870;display:none;align-items:center;justify-content:center;padding:18px;z-index:20}.overlay.open{display:flex}.modal{width:min(680px,100%);max-height:90vh;overflow:auto;background:white;border-radius:20px;box-shadow:0 20px 70px #0003}.modal-head{padding:20px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:center}.modal-head h3{margin:0;font-size:18px}.modal-body{padding:22px}.chat-bubble{padding:12px 14px;border-radius:14px;max-width:85%;margin:9px 0;font-size:13px}.from-customer{background:#f0f2f7}.from-agent{background:#eae7ff;margin-left:auto}.composer{display:flex;gap:8px;margin-top:18px}.composer input{flex:1;min-width:0;border:1px solid var(--line);border-radius:12px;padding:12px}.toast{position:fixed;bottom:20px;right:20px;background:#20283a;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:var(--shadow);display:none;z-index:40}.toast.show{display:block}
+.mobile-menu{display:none}
+@media(max-width:1120px){.app{grid-template-columns:68px 205px minmax(0,1fr)}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.board{grid-template-columns:repeat(4,235px)}}
+@media(max-width:760px){.app{grid-template-columns:1fr}.rail{height:auto;position:sticky;z-index:10;top:0;flex-direction:row;justify-content:flex-start;overflow:auto;padding:8px 10px;border-right:0;border-bottom:1px solid var(--line)}.logo{margin:0 8px 0 0;flex-shrink:0}.railbtn{min-width:55px}.subnav{display:none}.main{padding:17px 12px 28px}.topbar{align-items:flex-start}.page-title{font-size:21px}.user .user-name{display:none}.top-actions .iconbtn:nth-child(2){display:none}.metrics{gap:8px}.metric{padding:12px}.metric-value{font-size:22px}.toolbar .primary{width:100%}.board{grid-template-columns:repeat(4,250px)}.boardhead{align-items:flex-start}.hide-mobile{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail" aria-label="Navegación principal">
+    <div class="logo" title="DeToditoOutlet">D</div>
+    <button class="railbtn" data-nav="Inicio"><span class="ico">⌂</span>Inicio</button>
+    <button class="railbtn" data-nav="Empresas"><span class="ico">▦</span>Empresas</button>
+    <button class="railbtn active" data-nav="Bandeja"><span class="ico">☏</span>Bandeja</button>
+    <button class="railbtn" data-nav="Agentes"><span class="ico">✧</span>Agentes</button>
+    <button class="railbtn" data-nav="CRM"><span class="ico">♙</span>CRM</button>
+    <button class="railbtn" data-nav="Canales"><span class="ico">▣</span>Canales</button>
+    <button class="railbtn" data-nav="Analítica"><span class="ico">▥</span>Analítica</button>
+    <button class="railbtn" data-nav="Ajustes"><span class="ico">⚙</span>Ajustes</button>
+  </aside>
+  <aside class="subnav">
+    <div class="workspace-label">ESPACIO DE TRABAJO</div>
+    <button class="workspace" id="workspace"><span class="avatar">🛍️</span><span>DeToditoOutlet</span><span style="margin-left:auto">⌄</span></button>
+    <div class="workspace-label">VENTAS Y MENSAJES</div>
+    <a class="navlink active" href="#" data-nav="Bandeja"><span class="ico">☏</span>Bandeja de entrada</a>
+    <a class="navlink" href="#" data-nav="Embudo"><span class="ico">▤</span>Embudo de ventas</a>
+    <a class="navlink" href="#" data-nav="Contactos"><span class="ico">♙</span>Contactos</a>
+    <a class="navlink" href="#" data-nav="Respuestas rápidas"><span class="ico">⚡</span>Respuestas rápidas</a>
+    <div class="workspace-label" style="margin-top:26px">AUTOMATIZACIÓN</div>
+    <a class="navlink" href="#" data-nav="Agentes IA"><span class="ico">✧</span>Agentes IA</a>
+    <a class="navlink" href="#" data-nav="Reglas"><span class="ico">⌘</span>Reglas y flujos</a>
+    <a class="navlink" href="#" data-nav="Canales conectados"><span class="ico">▣</span>Canales conectados</a>
+    <div class="workspace-label" style="margin-top:26px">GESTIÓN</div>
+    <a class="navlink" href="#" data-nav="Productos"><span class="ico">▧</span>Catálogo de productos</a>
+    <a class="navlink" href="#" data-nav="Analítica"><span class="ico">▥</span>Analítica comercial</a>
+    <a class="navlink" href="#" data-nav="Configuración"><span class="ico">⚙</span>Configuración</a>
+    <div class="subnav-bottom">
+      <div class="statusline"><span class="dot"></span> Modo demostración</div>
+      <div style="font-size:11px;color:#9aa2b1;margin-top:8px">Los datos son ficticios</div>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <div class="crumb">DeToditoOutlet <span style="padding:0 6px">/</span> Ventas <span style="padding:0 6px">/</span> Bandeja de entrada</div>
+        <h1 class="page-title" id="pageTitle">Bandeja de ventas</h1>
+        <div class="statusline" style="margin-top:7px"><span class="dot"></span> Panel de demostración · sin conexiones reales</div>
+      </div>
+      <div class="top-actions">
+        <button class="iconbtn" title="Notificaciones" id="notifications">♧</button>
+        <button class="iconbtn" title="Ayuda" id="help">?</button>
+        <div class="user"><div class="user-avatar">DTO</div><div class="user-name"><strong>Administrador</strong><div style="font-size:11px;color:var(--muted)">Propietario</div></div></div>
+      </div>
+    </header>
+    <div class="toolbar">
+      <div class="search"><input id="search" placeholder="Buscar cliente o mensaje…" aria-label="Buscar cliente o mensaje"></div>
+      <select class="select" id="channelFilter" aria-label="Filtrar por canal"><option value="all">Todos los canales</option><option value="Messenger">Messenger</option><option value="Instagram">Instagram</option><option value="WhatsApp">WhatsApp</option></select>
+      <select class="select" id="statusFilter" aria-label="Filtrar por estado"><option value="all">Todos los estados</option><option value="Nuevo">Nuevo</option><option value="IA atendiendo">IA atendiendo</option><option value="Atención humana">Atención humana</option></select>
+      <button class="primary" id="newMessage">＋ Nueva conversación</button>
+    </div>
+    <section class="metrics">
+      <div class="metric"><div class="metric-top"><span>Conversaciones abiertas</span><span class="metric-icon">☏</span></div><div class="metric-value" id="mOpen">12</div><div class="metric-foot">En seguimiento comercial</div></div>
+      <div class="metric"><div class="metric-top"><span>Atendidas por IA</span><span class="metric-icon">✧</span></div><div class="metric-value" id="mAI">8</div><div class="metric-foot">Respuestas simuladas</div></div>
+      <div class="metric"><div class="metric-top"><span>Requieren vendedor</span><span class="metric-icon">♙</span></div><div class="metric-value" id="mHuman">3</div><div class="metric-foot" style="color:var(--amber)">Pendientes de seguimiento</div></div>
+      <div class="metric"><div class="metric-top"><span>Ventas atribuidas</span><span class="metric-icon">↗</span></div><div class="metric-value" id="mSales">2</div><div class="metric-foot">Datos de ejemplo</div></div>
+    </section>
+    <div class="boardhead">
+      <div><h2>Embudo de mensajes</h2><p>Organiza cada conversación según su avance hacia la venta.</p></div>
+      <div class="tabs" role="tablist"><button class="tab active" data-view="board">Embudo</button><button class="tab" data-view="list">Lista</button></div>
+    </div>
+    <section class="board" id="board" aria-label="Embudo de mensajes"></section>
+    <div class="footer-note">Prototipo visual · No conectado a Facebook, Instagram, WhatsApp ni a una base de datos real.</div>
+  </main>
+</div>
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+ <div class="modal">
+  <div class="modal-head"><div><h3 id="modalTitle">Conversación</h3><div class="statusline" id="modalMeta" style="margin-top:5px"></div></div><button class="iconbtn" id="closeModal" aria-label="Cerrar">✕</button></div>
+  <div class="modal-body">
+   <div id="chatHistory"></div>
+   <div style="font-size:11px;color:var(--muted);margin-top:14px">Respuesta de demostración: no se envía a ningún cliente real.</div>
+   <div class="composer"><input id="replyInput" placeholder="Escribe una respuesta de prueba…"><button class="primary" id="sendReply">Responder</button></div>
+   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="filterbtn" id="simulateAI">✧ Proponer respuesta IA</button><button class="filterbtn" id="markHuman">Derivar a vendedor</button><button class="filterbtn" id="markWon">Marcar venta concretada</button></div>
+  </div>
+ </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+const lanes=[
+ {name:"Nuevo mensaje",key:"Nuevo"},
+ {name:"IA atendiendo",key:"IA atendiendo"},
+ {name:"Seguimiento",key:"Seguimiento"},
+ {name:"Venta / Derivación",key:"Cierre"}
+];
+let conversations=[
+ {id:1,name:"Camila R.",initials:"CR",channel:"Messenger",stage:"Nuevo",status:"Nuevo",time:"hace 2 min",message:"Hola, ¿tienen muebles de cocina disponibles?",product:"Mueble de cocina",intent:"Consulta de producto",history:[["customer","Hola, ¿tienen muebles de cocina disponibles?"]]},
+ {id:2,name:"Javier M.",initials:"JM",channel:"Messenger",stage:"IA atendiendo",status:"IA atendiendo",time:"hace 8 min",message:"¿Cuánto cuesta y qué medidas tiene?",product:"Mueble de cocina",intent:"Precio y medidas",history:[["customer","Hola, vi el mueble en su página."],["customer","¿Cuánto cuesta y qué medidas tiene?"]]},
+ {id:3,name:"Daniela P.",initials:"DP",channel:"Instagram",stage:"Seguimiento",status:"IA atendiendo",time:"hace 19 min",message:"¿Realizan despacho a Curicó?",product:"Despacho",intent:"Consulta de entrega",history:[["customer","¿Realizan despacho a Curicó?"]]},
+ {id:4,name:"Matías A.",initials:"MA",channel:"Messenger",stage:"Venta / Derivación",status:"Atención humana",time:"hace 26 min",message:"Quiero comprar, ¿cómo coordinamos la entrega?",product:"Mueble de cocina",intent:"Intención de compra",history:[["customer","Me interesa comprar el mueble."],["customer","¿Cómo coordinamos la entrega?"]]},
+ {id:5,name:"Fran S.",initials:"FS",channel:"WhatsApp",stage:"IA atendiendo",status:"IA atendiendo",time:"hace 31 min",message:"¿Se puede personalizar el color?",product:"Mueble a medida",intent:"Personalización",history:[["customer","¿Se puede personalizar el color?"]]},
+ {id:6,name:"Roberto C.",initials:"RC",channel:"Messenger",stage:"Nuevo",status:"Nuevo",time:"hace 42 min",message:"Hola, ¿aceptan transferencia?",product:"Medios de pago",intent:"Pago",history:[["customer","Hola, ¿aceptan transferencia?"]]},
+ {id:7,name:"Paula V.",initials:"PV",channel:"Instagram",stage:"Seguimiento",status:"Atención humana",time:"hace 1 h",message:"Quedo atenta a la cotización, gracias.",product:"Cotización",intent:"Seguimiento",history:[["customer","Quedo atenta a la cotización, gracias."]]},
+ {id:8,name:"Nicolás T.",initials:"NT",channel:"Messenger",stage:"Venta / Derivación",status:"IA atendiendo",time:"hace 1 h",message:"¿Me puedes mandar el enlace para comprar?",product:"Mueble de cocina",intent:"Listo para comprar",history:[["customer","¿Me puedes mandar el enlace para comprar?"]]}
+];
+let activeId=null,view="board";
+const $=id=>document.getElementById(id);
+function toast(msg){$("toast").textContent=msg;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2600)}
+function iconForChannel(c){return c==="Messenger"?"🔵":c==="Instagram"?"📸":"🟢"}
+function statusPill(c){if(c.status==="Nuevo")return '<span class="pill new">● Nuevo</span>';if(c.status==="Atención humana")return '<span class="pill human">♙ Vendedor</span>';return '<span class="pill ai">✧ IA atendiendo</span>'}
+function render(){
+ const q=$("search").value.toLowerCase(),ch=$("channelFilter").value,st=$("statusFilter").value;
+ let filtered=conversations.filter(c=>(c.name+" "+c.message+" "+c.product+" "+c.intent).toLowerCase().includes(q)&&(ch==="all"||c.channel===ch)&&(st==="all"||c.status===st));
+ $("mOpen").textContent=conversations.length;$("mAI").textContent=conversations.filter(c=>c.status==="IA atendiendo").length;$("mHuman").textContent=conversations.filter(c=>c.status==="Atención humana").length;
+ const board=$("board");board.innerHTML="";
+ if(view==="list"){board.style.gridTemplateColumns="1fr";board.innerHTML='<div class="lane">'+filtered.map(cardHTML).join("")+'</div>';bindCards();return}
+ board.style.gridTemplateColumns="";
+ lanes.forEach(l=>{
+  const items=filtered.filter(c=>c.stage===l.key);
+  const col=document.createElement("div");col.className="lane";
+  col.innerHTML='<div class="lane-head"><div class="lane-name"><span class="lane-dot"></span>'+l.name+'</div><span class="lane-count">'+items.length+'</span></div>'+items.map(cardHTML).join("");
+  board.appendChild(col);
+ });bindCards();
+}
+function cardHTML(c){return `<article class="ticket" data-id="${c.id}" tabindex="0" role="button" aria-label="Abrir conversación con ${c.name}">
+ <div class="ticket-top"><div class="customer"><span class="mini-avatar">${c.initials}</span><span class="customer-name">${c.name}</span></div><span class="channel" title="${c.channel}">${iconForChannel(c.channel)}</span></div>
+ <div style="display:flex;justify-content:space-between;gap:5px;align-items:center;margin-top:8px"><span class="pill neutral">${c.intent}</span>${statusPill(c)}</div>
+ <p>${escapeHTML(c.message)}</p>
+ <div class="ticket-bottom"><span>${c.time}</span><span>${c.product}</span></div>
+ <div class="ticket-actions" style="margin-top:9px"><button class="tiny" data-action="ai" data-id="${c.id}">✧ IA</button><button class="tiny" data-action="human" data-id="${c.id}">Derivar</button><button class="tiny" data-action="close" data-id="${c.id}">⋯</button></div>
+ </article>`}
+function escapeHTML(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function bindCards(){
+ document.querySelectorAll(".ticket").forEach(el=>{el.addEventListener("click",e=>{if(e.target.closest("button"))return;openConversation(+el.dataset.id)});el.addEventListener("keydown",e=>{if(e.key==="Enter")openConversation(+el.dataset.id)})});
+ document.querySelectorAll("[data-action]").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();const c=conversations.find(x=>x.id===+b.dataset.id);if(b.dataset.action==="ai"){c.status="IA atendiendo";c.stage="IA atendiendo";toast("Conversación asignada al agente IA (simulación)")}else if(b.dataset.action==="human"){c.status="Atención humana";c.stage="Venta / Derivación";toast("Conversación derivada a un vendedor (simulación)")}else{openConversation(c.id)}render()}));
+}
+function openConversation(id){activeId=id;const c=conversations.find(x=>x.id===id);$("modalTitle").textContent=c.name;$("modalMeta").innerHTML=`${iconForChannel(c.channel)} ${c.channel} · ${c.product} · ${c.status}`;renderHistory(c);$("overlay").classList.add("open")}
+function renderHistory(c){$("chatHistory").innerHTML=c.history.map(([who,msg])=>`<div class="chat-bubble ${who==="customer"?"from-customer":"from-agent"}">${escapeHTML(msg)}</div>`).join("")}
+$("closeModal").onclick=()=>$("overlay").classList.remove("open");
+$("overlay").addEventListener("click",e=>{if(e.target===$("overlay"))$("overlay").classList.remove("open")});
+$("sendReply").onclick=()=>{const c=conversations.find(x=>x.id===activeId),v=$("replyInput").value.trim();if(!v)return;c.history.push(["agent",v]);c.message=v;c.status="Atención humana";c.stage="Venta / Derivación";$("replyInput").value="";renderHistory(c);$("modalMeta").textContent=`${c.channel} · Respuesta local de demostración`;render();toast("Respuesta agregada solo a la demostración")};
+$("simulateAI").onclick=()=>{const c=conversations.find(x=>x.id===activeId);const text=c.product==="Despacho"?"¡Gracias por escribirnos! 😊 Indícame tu comuna exacta y revisaré las condiciones de despacho disponibles.":c.intent.includes("Precio")?"¡Hola! 😊 Te ayudo con el precio y las medidas. Voy a verificar la información actual del producto para entregarte datos correctos.":"¡Hola! 😊 Gracias por escribirnos a DeToditoOutlet. Te ayudo con tu consulta y reviso la información disponible para orientarte con la compra.";c.history.push(["agent","[PROPUESTA IA] "+text]);renderHistory(c);toast("Propuesta generada localmente; no se envió al cliente")};
+$("markHuman").onclick=()=>{const c=conversations.find(x=>x.id===activeId);c.status="Atención humana";c.stage="Venta / Derivación";render();openConversation(activeId);toast("Marcada para atención humana")};
+$("markWon").onclick=()=>{const c=conversations.find(x=>x.id===activeId);c.status="Atención humana";c.stage="Venta / Derivación";c.intent="Venta confirmada (demo)";render();openConversation(activeId);toast("Marcada como venta de prueba; no representa una venta real")};
+$("search").addEventListener("input",render);$("channelFilter").addEventListener("change",render);$("statusFilter").addEventListener("change",render);
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));view=b.dataset.view;render()});
+$("newMessage").onclick=()=>{const name=prompt("Nombre del contacto de prueba:");if(!name)return;const c={id:Math.max(...conversations.map(x=>x.id))+1,name,initials:name.split(/\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase(),channel:"Messenger",stage:"Nuevo",status:"Nuevo",time:"ahora",message:"Nueva conversación de prueba",product:"Por identificar",intent:"Consulta nueva",history:[["customer","Nueva conversación de prueba"]]};conversations.unshift(c);render();toast("Conversación ficticia creada")};
+$("workspace").onclick=()=>toast("En la versión real aquí podrás cambiar de empresa");
+$("notifications").onclick=()=>toast("No hay notificaciones reales en el prototipo");
+$("help").onclick=()=>alert("Prototipo de DeToditoOutlet. Los datos y las respuestas son de demostración; no hay conexiones reales.");
+document.querySelectorAll("[data-nav]").forEach(el=>el.addEventListener("click",e=>{e.preventDefault();const n=el.dataset.nav;document.querySelectorAll("[data-nav]").forEach(x=>x.classList.toggle("active",x.dataset.nav===n));$("pageTitle").textContent=n==="Bandeja"?"Bandeja de ventas":n; if(n!=="Bandeja")toast("Vista de "+n+": siguiente etapa del prototipo");}));
+render();
+</script>
+</body>
+</html>
