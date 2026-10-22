@@ -7,9 +7,15 @@ import { ChatFilters } from './ChatFilters'
 import { ConversationList } from './ConversationList'
 import { ConversationView } from './ConversationView'
 
-export function ChatInbox({ initialConversations }: { initialConversations: Conversation[] }) {
+export function ChatInbox({ initialConversations, initialSelectedId = null }: {
+  initialConversations: Conversation[]
+  /** Conversación a abrir directamente (enlaces de la extensión: /chat?c=<id>). */
+  initialSelectedId?: string | null
+}) {
   const [conversations, setConversations] = useState(initialConversations)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(
+    initialConversations.some((c) => c.id === initialSelectedId) ? initialSelectedId : null,
+  )
   const [query, setQuery] = useState('')
   const [channel, setChannel] = useState<ChannelType | null>(null)
 
@@ -31,11 +37,14 @@ export function ChatInbox({ initialConversations }: { initialConversations: Conv
   }
 
   return (
-    <div className="flex h-full gap-3">
+    <div className="flex h-full min-w-0 gap-3">
       <ChatFilters channel={channel} onChannelChange={setChannel} />
-      <ConversationList conversations={visible} selectedId={selectedId} onSelect={select} query={query} onQueryChange={setQuery} />
+      <ConversationList conversations={visible} selectedId={selectedId} onSelect={select} query={query} onQueryChange={setQuery}
+        className={selectedId ? 'hidden md:flex' : 'flex'} />
       <ConversationView
         conversation={conversations.find((c) => c.id === selectedId)}
+        className={selectedId ? 'flex' : 'hidden md:flex'}
+        onBack={() => setSelectedId(null)}
         onSend={send}
         onToggleAi={() => patchSelected((c) => ({ ...c, aiEnabled: !c.aiEnabled }))}
       />

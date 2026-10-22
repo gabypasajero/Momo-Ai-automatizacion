@@ -69,7 +69,7 @@ export function KnowledgeView({ entries, products, totalProducts, query }: Props
                       {p.customizable && <Badge tone="brand">Personalizable</Badge>}
                       {p.dimensions && <span className="text-xs text-muted">{p.dimensions}</span>}
                       {p.sourceUrl && (
-                        <a href={p.sourceUrl} target="_blank" rel="noreferrer" aria-label={`Ver ${p.name} en la tienda`} className="text-muted hover:text-brand-600">
+                        <a href={p.sourceUrl} aria-label={`Ver ${p.name} en la tienda`} className="text-muted hover:text-brand-600">
                           <ExternalLink className="h-3.5 w-3.5" />
                         </a>
                       )}

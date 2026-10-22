@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Momo AI</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header>
+    <span class="logo" aria-hidden="true">M</span>
+    <div><h1>Momo AI</h1><p class="sub">Tu embudo siempre a mano</p></div>
+  </header>
+
+  <form id="ingreso" hidden>
+    <label>Correo <input name="email" type="email" autocomplete="email" required /></label>
+    <label>Contraseña <input name="password" type="password" autocomplete="current-password" required /></label>
+    <p id="error" class="error" role="alert" hidden></p>
+    <button type="submit" class="primario">Ingresar</button>
+    <p class="nota">Usa la misma cuenta con la que entras a Momo.</p>
+  </form>
+
+  <section id="cuenta" hidden>
+    <p class="sesion">Conectado como <strong id="correo"></strong></p>
+    <p id="estado" class="estado"></p>
+    <div class="acciones">
+      <button type="button" id="abrir" class="primario">Abrir embudo</button>
+      <button type="button" id="actualizar">Actualizar</button>
+    </div>
+    <label class="interruptor"><input type="checkbox" id="visible" /> Mostrar la burbuja en las páginas</label>
+    <button type="button" id="salir" class="enlace">Cerrar sesión</button>
+  </section>
+
+  <details>
+    <summary>Ajustes</summary>
+    <label>Dirección de Momo <input id="momoUrl" type="url" placeholder="https://momo-ai-automatizacion.vercel.app" /></label>
+    <button type="button" id="guardarUrl">Guardar</button>
+  </details>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

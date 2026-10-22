@@ -32,6 +32,9 @@ Sin variables de entorno la app corre en **modo demo** (datos de prueba, sin log
 ## Despliegue
 Importa el repositorio en Vercel; detecta Next.js automáticamente.
 
+## Extensión de Chrome
+Burbuja con el embudo en la esquina superior izquierda de cualquier página y acceso directo a cada chat: ver [extension/README.md](extension/README.md).
+
 ## Documentación
 - [Arquitectura y estructura de carpetas](docs/arquitectura.md)
 - [Piloto con Facebook / Marketplace](docs/piloto-facebook.md)

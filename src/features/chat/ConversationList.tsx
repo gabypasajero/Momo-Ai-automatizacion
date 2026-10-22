@@ -10,11 +10,12 @@ interface Props {
   onSelect: (id: string) => void
   query: string
   onQueryChange: (q: string) => void
+  className?: string
 }
 
-export function ConversationList({ conversations, selectedId, onSelect, query, onQueryChange }: Props) {
+export function ConversationList({ conversations, selectedId, onSelect, query, onQueryChange, className }: Props) {
   return (
-    <Card className="flex w-80 shrink-0 flex-col">
+    <Card className={cn('w-full shrink-0 flex-col md:w-80', className)}>
       <div className="border-b border-line p-3"><SearchInput value={query} onChange={onQueryChange} placeholder="Buscar" /></div>
       <ul className="scroll-thin flex-1 overflow-y-auto">
         {conversations.map((c) => {

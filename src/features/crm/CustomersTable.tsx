@@ -23,7 +23,7 @@ export function CustomersTable({ contacts, total }: { contacts: Contact[]; total
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-surface text-left text-xs uppercase text-muted">
-            <tr><th className="p-3">Cliente</th><th>Canal</th><th>Etiqueta</th><th>Responsable</th><th><span className="sr-only">Acciones</span></th></tr>
+            <tr><th className="p-3">Cliente</th><th>Canal</th><th>Etiqueta</th><th>Responsable</th><th className="relative"><span className="sr-only">Acciones</span></th></tr>
           </thead>
           <tbody>
             {rows.map((c) => (

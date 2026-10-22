@@ -17,7 +17,7 @@ interface Props {
 export function KanbanColumn({ stage, count, totalClp, onDrop, children }: Props) {
   return (
     <section aria-label={stage.name} onDragOver={(e) => e.preventDefault()} onDrop={onDrop}
-      className={cn('flex w-80 shrink-0 flex-col rounded-2xl border border-t-4 border-line bg-surface', stage.tone)}>
+      className={cn('flex w-[min(20rem,calc(100vw-8rem))] shrink-0 flex-col rounded-2xl border border-t-4 border-line bg-surface', stage.tone)}>
       <header className="flex items-center justify-between px-3 py-2.5">
         <div>
           <h2 className="text-sm font-semibold">{stage.emoji} {stage.name}</h2>

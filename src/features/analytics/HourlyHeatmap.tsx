@@ -8,7 +8,7 @@ export function HourlyHeatmap({ data }: { data: number[][] }) {
   return (
     <Card className="p-5">
       <h3 className="mb-3 text-sm font-medium">Mensajes recibidos por horario</h3>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Mensajes por día y hora">
         <div className="ml-16 flex text-[10px] text-muted">
           {Array.from({ length: 24 }, (_, h) => <span key={h} className="w-5 shrink-0 text-center">{h % 3 === 0 ? hourLabel(h) : ''}</span>)}
         </div>

@@ -8,7 +8,7 @@ export function ChannelIcon({ channel, size = 'sm' }: { channel: ChannelType; si
     <span
       title={label}
       className={cn(
-        'inline-flex shrink-0 items-center justify-center text-white',
+        'relative inline-flex shrink-0 items-center justify-center text-white',
         size === 'lg' ? 'h-10 w-10 rounded-xl' : 'h-5 w-5 rounded-md',
         className,
       )}

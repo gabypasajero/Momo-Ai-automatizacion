@@ -1,6 +1,6 @@
 'use client'
 
-import { MessageCircle, Pause, Play, Send } from 'lucide-react'
+import { ArrowLeft, MessageCircle, Pause, Play, Send } from 'lucide-react'
 import { useState } from 'react'
 import { Avatar, Button, Card, ChannelIcon } from '@/components/ui'
 import { CHANNELS } from '@/config/channels'
@@ -17,14 +17,17 @@ interface Props {
   conversation: Conversation | undefined
   onSend: (text: string) => void
   onToggleAi: () => void
+  /** Volver a la lista (solo en pantallas angostas). */
+  onBack: () => void
+  className?: string
 }
 
-export function ConversationView({ conversation: c, onSend, onToggleAi }: Props) {
+export function ConversationView({ conversation: c, onSend, onToggleAi, onBack, className }: Props) {
   const [draft, setDraft] = useState('')
 
   if (!c) {
     return (
-      <Card className="flex min-w-0 flex-1 items-center justify-center">
+      <Card className={cn('min-w-0 flex-1 items-center justify-center', className)}>
         <div className="text-center">
           <MessageCircle className="mx-auto h-12 w-12 text-brand-200" aria-hidden />
           <p className="mt-3 font-semibold text-brand-600">Selecciona un chat de la sección izquierda</p>
@@ -41,14 +44,17 @@ export function ConversationView({ conversation: c, onSend, onToggleAi }: Props)
   }
 
   return (
-    <Card className="flex min-w-0 flex-1 flex-col">
+    <Card className={cn('min-w-0 flex-1 flex-col', className)}>
       <div className="flex items-center gap-3 border-b border-line p-3">
+        <button type="button" onClick={onBack} aria-label="Volver a la lista" className="rounded-lg p-1 text-muted hover:bg-surface md:hidden">
+          <ArrowLeft className="h-5 w-5" />
+        </button>
         <Avatar name={c.contactName} />
         <div>
           <p className="font-semibold">{c.contactName}</p>
           <p className="flex items-center gap-1 text-xs text-muted"><ChannelIcon channel={c.channel} /> {CHANNELS[c.channel].label}</p>
         </div>
-        <Button onClick={onToggleAi} className="ml-auto">
+        <Button onClick={onToggleAi} className="ml-auto shrink-0">
           {c.aiEnabled ? <><Pause className="h-4 w-4" /> Pausar IA</> : <><Play className="h-4 w-4" /> Activar IA</>}
         </Button>
       </div>

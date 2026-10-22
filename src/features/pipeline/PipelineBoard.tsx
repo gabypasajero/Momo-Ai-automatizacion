@@ -29,7 +29,7 @@ export function PipelineBoard({ pipeline, initialTickets }: { pipeline: Pipeline
     setChannels((cs) => (cs.includes(c) ? cs.filter((x) => x !== c) : [...cs, c]))
 
   return (
-    <div className="flex h-full flex-col gap-3">
+    <div className="flex h-full min-w-0 flex-col gap-3">
       <PipelineToolbar
         pipelineName={pipeline.name} mode={mode} onModeChange={setMode}
         channels={channels} onToggleChannel={toggleChannel}
@@ -38,7 +38,7 @@ export function PipelineBoard({ pipeline, initialTickets }: { pipeline: Pipeline
       {mode === 'list' ? (
         <TicketTable tickets={visible} stages={pipeline.stages} />
       ) : (
-        <div className="scroll-thin flex flex-1 gap-3 overflow-x-auto pb-2">
+        <div className="scroll-thin flex min-w-0 flex-1 gap-3 overflow-x-auto pb-2">
           {pipeline.stages.map((stage) => {
             const items = visible.filter((t) => t.stageId === stage.id)
             return (
