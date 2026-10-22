@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Mascot } from '@/components/brand'
 import { MODULES, SETTINGS_MODULE, findModule, type ModuleNav } from '@/config/navigation'
 import { cn } from '@/lib/cn'
 
@@ -26,8 +27,8 @@ export function Sidebar() {
   const active = findModule(usePathname())
   return (
     <nav aria-label="Módulos" className="scroll-thin flex w-20 shrink-0 flex-col items-center gap-1 overflow-y-auto border-r border-line bg-white px-2 py-3">
-      <Link href="/inicio" aria-label="Momo AI, inicio" className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-accent text-lg font-bold text-white shadow-lg shadow-brand-500/30">
-        M
+      <Link href="/inicio" aria-label="Momo AI, inicio" className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-100 ring-1 ring-brand-200 transition hover:bg-brand-200">
+        <Mascot className="h-10 w-10" title="" />
       </Link>
       {MODULES.map((m) => <RailLink key={m.href} module={m} active={active?.href === m.href} />)}
       <div className="mt-auto w-full pt-2">

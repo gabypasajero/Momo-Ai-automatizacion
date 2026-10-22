@@ -1,5 +1,6 @@
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { Mascot } from '@/components/brand'
 import { Card, ChannelIcon, KpiCard } from '@/components/ui'
 import type { Ticket } from '@/lib/data/types'
 import { formatClp } from '@/lib/format'
@@ -17,7 +18,10 @@ export function HomeOverview({ tickets, aiCoverage, userName }: { tickets: Ticke
           <h2 className="text-2xl font-bold">Tu IA respondió el {aiCoverage.toLocaleString('es-CL')}% de los mensajes este mes</h2>
           <p className="mt-1 text-sm opacity-80">Revisa las conversaciones que esperan a una persona.</p>
         </div>
-        <Link href="/analitica" className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-brand-700">Ver analítica</Link>
+        <div className="flex items-center gap-3">
+          <Link href="/analitica" className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-brand-700">Ver analítica</Link>
+          <span className="hidden rounded-2xl bg-white/85 p-2 sm:block"><Mascot variant="full" className="h-20 w-auto" title="" /></span>
+        </div>
       </Card>
       <div className="grid gap-3 sm:grid-cols-3">
         <KpiCard label="Valor en embudo (CLP)" value={formatClp(pipelineValue)} />

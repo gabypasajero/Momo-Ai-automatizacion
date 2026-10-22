@@ -18,8 +18,9 @@
       :host { all: initial; }
       * { box-sizing: border-box; font-family: Nunito, system-ui, -apple-system, Segoe UI, sans-serif; }
       .caja { position: fixed; top: 12px; left: 12px; z-index: 2147483647; color: #3A2A33; }
-      .boton { width: 44px; height: 44px; border: 0; border-radius: 14px; cursor: pointer; color: #fff; font-weight: 700; font-size: 18px;
-        background: linear-gradient(135deg, #A8325E, #8E6CC9); box-shadow: 0 6px 18px rgba(168, 50, 94, .35); position: relative; }
+      .boton { width: 48px; height: 48px; border: 2px solid #F0BCCD; border-radius: 16px; cursor: pointer; padding: 0;
+        background: #F7D9E2; box-shadow: 0 6px 18px rgba(168, 50, 94, .3); position: relative; display: grid; place-items: center; }
+      .boton:hover { background: #F0BCCD; }
       .boton:focus-visible, button:focus-visible, .chat:focus-visible { outline: 2px solid #8E6CC9; outline-offset: 2px; }
       .contador { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px;
         background: #A3262A; color: #fff; font-size: 11px; line-height: 20px; font-weight: 700; border: 2px solid #fff; }
@@ -52,7 +53,7 @@
       [hidden] { display: none !important; }
     </style>
     <div class="caja">
-      <button class="boton" type="button" aria-expanded="false" aria-label="Abrir embudo de Momo" title="Embudo de Momo">M<span class="contador" hidden></span></button>
+      <button class="boton" type="button" aria-expanded="false" aria-label="Abrir embudo de Momo" title="Embudo de Momo"><svg width="36" height="27" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 8 64 48"><g><path d="M21 31 C11 32 2 25 2 13 C11 10 23 16 28 25 Z" fill="#FBF3EA" stroke="#3A2A33" stroke-width="1.6" stroke-linejoin="round"></path><path d="M20 28 C12 28 6 22 6 16 C12 15 20 19 24 25 Z" fill="#E393AE"></path><path d="M43 31 C53 32 62 25 62 13 C53 10 41 16 36 25 Z" fill="#FBF3EA" stroke="#3A2A33" stroke-width="1.6" stroke-linejoin="round"></path><path d="M44 28 C52 28 58 22 58 16 C52 15 44 19 40 25 Z" fill="#E393AE"></path><ellipse cx="32" cy="38" rx="17" ry="15.5" fill="#FBF3EA" stroke="#3A2A33" stroke-width="1.6"></ellipse><path d="M28 24 Q32 19 36 24 Q32 22.5 28 24 Z" fill="#EEDFCF"></path><ellipse cx="21" cy="44" rx="3.6" ry="2.4" fill="#F2B8C9"></ellipse><ellipse cx="43" cy="44" rx="3.6" ry="2.4" fill="#F2B8C9"></ellipse><circle cx="25" cy="37" r="5.6" fill="#fff" stroke="#3A2A33" stroke-width="1.3"></circle><circle cx="39" cy="37" r="5.6" fill="#fff" stroke="#3A2A33" stroke-width="1.3"></circle><circle cx="25.6" cy="37.6" r="3.6" fill="#8E6CC9"></circle><circle cx="38.4" cy="37.6" r="3.6" fill="#8E6CC9"></circle><circle cx="25.8" cy="38" r="1.9" fill="#3A2A33"></circle><circle cx="38.2" cy="38" r="1.9" fill="#3A2A33"></circle><circle cx="24.3" cy="36.1" r="1.1" fill="#fff"></circle><circle cx="36.9" cy="36.1" r="1.1" fill="#fff"></circle><path d="M32 44.2 C30.6 42.8 29.6 43.9 30.4 44.9 L32 46.4 L33.6 44.9 C34.4 43.9 33.4 42.8 32 44.2 Z" fill="#A8325E"></path><path d="M29 48 Q32 50.6 35 48" fill="none" stroke="#3A2A33" stroke-width="1.3" stroke-linecap="round"></path></g></svg><span class="contador" hidden></span></button>
       <section class="panel" hidden aria-label="Embudo de Momo">
         <div class="cabeza">
           <h2>Momo · Embudo</h2>

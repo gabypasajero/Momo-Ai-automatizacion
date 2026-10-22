@@ -2,6 +2,7 @@
 
 import { ArrowLeft, MessageCircle, Pause, Play, Send } from 'lucide-react'
 import { useState } from 'react'
+import { Mascot } from '@/components/brand'
 import { Avatar, Button, Card, ChannelIcon } from '@/components/ui'
 import { CHANNELS } from '@/config/channels'
 import type { Conversation, MessageAuthor } from '@/lib/data/types'
@@ -62,7 +63,12 @@ export function ConversationView({ conversation: c, onSend, onToggleAi, onBack, 
         {c.messages.map((m) => (
           <div key={m.id} className={cn('flex', m.author === 'client' ? 'justify-start' : 'justify-end')}>
             <div className={cn('max-w-md rounded-2xl px-4 py-2 text-sm', BUBBLE[m.author])}>
-              {m.author !== 'client' && <p className="mb-0.5 text-[10px] uppercase opacity-75">{m.author === 'ai' ? '✦ Asistente IA' : 'Ejecutivo'}</p>}
+              {m.author === 'ai' && (
+                <p className="mb-1 flex items-center gap-1 text-[11px] font-semibold opacity-90">
+                  <span className="rounded-full bg-white/90 p-0.5"><Mascot className="h-4 w-4" title="" /></span> Momo · IA
+                </p>
+              )}
+              {m.author === 'human' && <p className="mb-0.5 text-[10px] uppercase opacity-75">Ejecutivo</p>}
               {m.text}
               <p className="mt-1 text-right text-[10px] opacity-60">{m.sentAt}</p>
             </div>
