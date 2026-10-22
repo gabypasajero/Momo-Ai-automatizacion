@@ -24,7 +24,7 @@ export const getRepository = cache(async (): Promise<Repository> => {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const repo = await SupabaseRepository.forCurrentUser(supabase)
+  const repo = await SupabaseRepository.forCurrentUser(supabase, user.id)
   if (!repo) throw new NoOrganizationError()
   return repo
 })

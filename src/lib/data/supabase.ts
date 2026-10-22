@@ -33,16 +33,20 @@ function lastMessage(messages: MessageRow[] | null | undefined) {
 export class SupabaseRepository implements Repository {
   constructor(private readonly db: MomoClient, private readonly organization: Organization) {}
 
-  /** Empresa activa del usuario: la primera de sus membresías (por ahora no hay selector). */
-  static async forCurrentUser(db: MomoClient): Promise<SupabaseRepository | null> {
+  /**
+   * Empresa activa del usuario. Con varias membresías, prioriza donde es dueño,
+   * luego administrador, y desempata por antigüedad (por ahora no hay selector).
+   */
+  static async forCurrentUser(db: MomoClient, userId: string): Promise<SupabaseRepository | null> {
     const { data, error } = await db
       .from('members')
-      .select('organization:organizations(id, name, plan)')
-      .order('created_at')
-      .limit(1)
-      .maybeSingle()
+      .select('role, created_at, organization:organizations(id, name, plan)')
+      .eq('user_id', userId) // RLS deja ver a todo el equipo; aquí solo interesan las propias
     if (error) throw error
-    const org = data?.organization as unknown as Organization | null
+    const PRIORITY: Record<string, number> = { owner: 0, admin: 1, agent: 2, viewer: 3 }
+    const [first] = [...(data ?? [])].sort((a, b) =>
+      (PRIORITY[a.role] ?? 9) - (PRIORITY[b.role] ?? 9) || a.created_at.localeCompare(b.created_at))
+    const org = first?.organization as unknown as Organization | undefined
     return org ? new SupabaseRepository(db, org) : null
   }
 
