@@ -790,7 +790,7 @@ function BillingView() {
       </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {PLANS.map((p) => (
-          <Card key={p.name} className={`relative flex flex-col p-5 ${p.popular ? 'border-2 border-brand-600' : ''}`}>
+          <Card key={p.name} className={`relative flex flex-col p-5 ${p.popular ? 'ring-2 ring-brand-500' : ''}`}>
             {p.popular && <span className="absolute -top-3 left-5 rounded-full bg-brand-600 px-3 py-0.5 text-xs font-semibold text-white">Más popular</span>}
             <p className="font-semibold">{p.name}</p>
             <p className="text-xs text-muted">{p.desc}</p>
