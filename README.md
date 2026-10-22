@@ -33,6 +33,8 @@ Importa el repositorio en Vercel; detecta Next.js automáticamente.
 ## Documentación
 - [Arquitectura y estructura de carpetas](docs/arquitectura.md)
 - [Piloto con Facebook / Marketplace](docs/piloto-facebook.md)
+- [Catálogo y conocimiento de la IA](docs/catalogo.md)
+- Base de datos: `supabase/migrations/` (esquema) y `supabase/seed/` (datos del piloto)
 
 ## Marca
 La paleta DTO (morado `#7565e8`, azul `#4f8df7`, tinta `#1d2433`) vive como variables CSS en `src/app/globals.css` y como colores semánticos en `tailwind.config.ts` (`brand`, `accent`, `ink`, `muted`, `line`, `surface`, `success`, `danger`, `warning`). Para dar marca blanca a una empresa basta con cambiar esas variables.

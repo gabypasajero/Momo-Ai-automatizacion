@@ -53,9 +53,25 @@ src/
 4. **Separación por empresa desde el día 1.** Toda tabla lleva `organization_id` y una política RLS; ninguna consulta puede cruzar datos entre empresas.
 5. **Accesibilidad.** Botones con `aria-label`, estados con `aria-pressed`/`aria-current`, y el foco visible.
 
+## Base de datos (lista)
+
+Esquema `momo` en el proyecto Supabase "DTO detoditooutlet" (`supabase/migrations/`). 15 tablas, todas con seguridad por fila (RLS):
+
+- **Empresas y equipo:** `organizations`, `members` (roles owner/admin/agent/viewer), función `momo.has_role()`.
+- **Canales:** `channel_accounts` (el token va a Supabase Vault, nunca en texto plano).
+- **Clientes:** `contacts`, `contact_identities` (una persona puede escribir por varios canales).
+- **Ventas:** `pipelines`, `pipeline_stages` (con `key` estable para la IA), `tickets`.
+- **Mensajería:** `conversations` (incluye `last_inbound_at` para la ventana de 24 h de Meta), `messages` (con `external_id` único para no duplicar webhooks).
+- **IA:** `products` (búsqueda de texto en español), `ai_assistants`, `knowledge_entries`.
+- **Operación:** `usage_events` (límites por plan; solo el backend escribe), `webhook_events` (registro crudo de Meta; solo el backend).
+
+Lectura para cualquier miembro, escritura para owner/admin/agent y borrado solo para owner/admin. Detalle del catálogo en [catalogo.md](catalogo.md).
+
+> Para que la app lea el esquema `momo` con supabase-js hay que agregarlo en **Supabase → Project Settings → Data API → Exposed schemas**.
+
 ## Próximo: backend
 
-1. Esquema en Supabase: `organizations`, `members`, `channel_accounts`, `contacts`, `conversations`, `messages`, `pipelines`, `pipeline_stages`, `tickets`, `ai_assistants`, `usage_events`, con RLS.
+1. ~~Esquema en Supabase~~ ✔
 2. Autenticación (Supabase Auth) y protección de las rutas de `(app)`.
 3. `POST /api/webhooks/meta`: verificación de firma, guardado del mensaje y encolado.
 4. Agente de IA con herramientas: `reply`, `move_ticket`, `handoff_to_human`, `search_catalog`.

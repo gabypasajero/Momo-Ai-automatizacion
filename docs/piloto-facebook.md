@@ -2,6 +2,8 @@
 
 Objetivo: que la IA de Momo responda los mensajes que llegan por **Messenger y Marketplace** a la Página de Facebook de Rachel. Cuando haga falta una persona, la conversación pasa a "Asistencia humana", y todo queda registrado en el embudo.
 
+> En Momo, el negocio de Rachel es la empresa **DeToditoOutlet** (canal de venta de Muebles y Hogar Molina SpA). Ya tiene cargados 221 productos, 7 políticas del negocio y su asistente (ver [catalogo.md](catalogo.md)).
+
 ## 1. Requisito clave: Marketplace solo funciona a través de una **Página**
 
 La API oficial de Meta (Messenger Platform) **solo entrega los mensajes que llegan a una Página de Facebook**. Los mensajes de Marketplace enviados a un **perfil personal no se pueden leer por API**: Meta no lo permite, y ninguna herramienta legítima lo hace.
