@@ -13,5 +13,6 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) return NextResponse.redirect(`${origin}${safe}`)
   }
-  return NextResponse.redirect(`${origin}/login`)
+  // Enlace vencido o abierto en otro navegador: se puede pedir uno nuevo.
+  return NextResponse.redirect(`${origin}/recuperar?error=enlace`)
 }
