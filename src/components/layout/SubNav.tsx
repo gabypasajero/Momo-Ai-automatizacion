@@ -40,3 +40,26 @@ export function SubNav() {
     </aside>
   )
 }
+
+/** Celular: pestañas horizontales del submenú bajo la barra superior. */
+export function SubNavTabs() {
+  const pathname = usePathname()
+  const current = findModule(pathname)
+  if (!current?.submenu) return null
+  const links = current.submenu.flatMap((g) => g.items).filter((i) => i.ready !== false)
+
+  return (
+    <nav aria-label={`Secciones de ${current.label}`} className="flex shrink-0 gap-1 overflow-x-auto border-b border-line bg-white px-3 py-2 md:hidden">
+        {links.map((item) => {
+          const Icon = item.icon
+          const active = pathname === item.href
+          return (
+            <Link key={item.label} href={item.href} aria-current={active ? 'page' : undefined}
+              className={cn('flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-sm', active ? 'bg-brand-100 font-medium text-brand-700' : 'border border-line text-ink')}>
+              <Icon className="h-4 w-4" aria-hidden />{item.label}
+            </Link>
+          )
+        })}
+    </nav>
+  )
+}

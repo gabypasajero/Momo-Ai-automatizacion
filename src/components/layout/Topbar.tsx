@@ -27,14 +27,13 @@ export function Topbar({ organizationName, userInitials, signOutAction }: {
       <div className="ml-auto flex items-center gap-1">
         <span className="mr-2 hidden text-sm text-muted sm:block">{organizationName}</span>
         {[
-          { icon: MessageCircle, label: 'Mensajes' },
-          { icon: ClipboardList, label: 'Tareas' },
-          { icon: Bell, label: 'Notificaciones', dot: true },
-        ].map(({ icon: Icon, label, dot }) => (
-          <button key={label} type="button" aria-label={label} className="relative rounded-lg border border-line p-1.5 text-muted hover:bg-surface">
+          { icon: MessageCircle, label: 'Mensajes', href: '/chat' },
+          { icon: ClipboardList, label: 'Tareas (embudo)', href: '/embudo' },
+          { icon: Bell, label: 'Pendientes de hoy', href: '/inicio' },
+        ].map(({ icon: Icon, label, href }) => (
+          <Link key={label} href={href} aria-label={label} title={label} className="relative rounded-lg border border-line p-1.5 text-muted hover:bg-surface hover:text-ink">
             <Icon className="h-4 w-4" aria-hidden />
-            {dot && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-danger" />}
-          </button>
+          </Link>
         ))}
         <span className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 text-xs font-semibold text-white">{userInitials}</span>
         {signOutAction && (

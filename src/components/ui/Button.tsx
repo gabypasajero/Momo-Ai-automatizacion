@@ -12,20 +12,27 @@ const VARIANTS: Record<Variant, string> = {
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant
   size?: 'sm' | 'md'
+  /** Función aún no disponible: se muestra deshabilitada con la etiqueta "Pronto". */
+  soon?: boolean
 }
 
-export function Button({ variant = 'secondary', size = 'md', className, type = 'button', ...props }: ButtonProps) {
+export function Button({ variant = 'secondary', size = 'md', className, type = 'button', soon, children, disabled, title, ...props }: ButtonProps) {
   return (
     <button
       type={type}
       className={cn(
         'inline-flex items-center justify-center gap-1.5 rounded-lg font-medium transition',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 disabled:opacity-50',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 disabled:cursor-not-allowed disabled:opacity-60',
         size === 'sm' ? 'px-2.5 py-1 text-xs' : 'px-3 py-1.5 text-sm',
         VARIANTS[variant],
         className,
       )}
+      disabled={disabled || soon}
+      title={soon ? 'Disponible pronto' : title}
       {...props}
-    />
+    >
+      {children}
+      {soon && <span className="rounded bg-surface px-1 text-[10px] font-normal text-muted">Pronto</span>}
+    </button>
   )
 }

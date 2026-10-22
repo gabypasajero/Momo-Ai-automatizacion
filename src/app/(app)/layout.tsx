@@ -1,6 +1,6 @@
 import { Building2 } from 'lucide-react'
 import { Sidebar } from '@/components/layout/Sidebar'
-import { SubNav } from '@/components/layout/SubNav'
+import { SubNav, SubNavTabs } from '@/components/layout/SubNav'
 import { Topbar } from '@/components/layout/Topbar'
 import { Button, EmptyState } from '@/components/ui'
 import { MomoCompanion } from '@/features/assistant/MomoCompanion'
@@ -37,6 +37,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           userInitials={initials(user?.name ?? 'Gaby Pasajero')}
           signOutAction={user ? signOut : undefined}
         />
+        <SubNavTabs />
         <main className="scroll-thin min-h-0 flex-1 overflow-auto p-4">{children}</main>
       </div>
       <MomoCompanion />

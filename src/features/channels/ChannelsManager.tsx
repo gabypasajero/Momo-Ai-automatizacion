@@ -1,6 +1,7 @@
 'use client'
 
 import { ArrowRight, Columns3, FlaskConical, Gauge, Link2, MoreVertical, Plus, Smartphone, X } from 'lucide-react'
+import Link from 'next/link'
 import { useState } from 'react'
 import { Badge, Button, Card, ChannelIcon, PageHeader, SearchInput } from '@/components/ui'
 import { CHANNELS, CHANNEL_ORDER } from '@/config/channels'
@@ -36,7 +37,7 @@ export function ChannelsManager({ accounts, pipeline }: { accounts: ChannelAccou
             )
           })}
         </div>
-        <Button variant="primary" className="mt-4"><Plus className="h-4 w-4" /> Agregar canal</Button>
+        <Button variant="primary" className="mt-4" soon><Plus className="h-4 w-4" /> Agregar canal</Button>
       </Card>
 
       <Card className="p-4">
@@ -44,10 +45,10 @@ export function ChannelsManager({ accounts, pipeline }: { accounts: ChannelAccou
         <div className="mt-4 rounded-xl border border-line p-3">
           <div className="flex flex-wrap items-center gap-2">
             <div className="mr-auto"><p className="text-sm font-semibold">{pipeline.name}</p><p className="text-xs text-muted">Canales asociados</p></div>
-            <Button><FlaskConical className="h-4 w-4" /> A/B Testing</Button>
-            <Button><Gauge className="h-4 w-4" /> Límite</Button>
-            <Button><ArrowRight className="h-4 w-4" /> Ir al embudo</Button>
-            <Button variant="primary" onClick={() => setLinked(accounts.map((a) => a.id))}><Plus className="h-4 w-4" /> Asociar canal</Button>
+            <Button soon><FlaskConical className="h-4 w-4" /> A/B Testing</Button>
+            <Button soon><Gauge className="h-4 w-4" /> Límite</Button>
+            <Link href="/embudo" className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-white px-3 py-1.5 text-sm font-medium text-ink hover:bg-surface"><ArrowRight className="h-4 w-4" aria-hidden /> Ir al embudo</Link>
+            <Button variant="primary" disabled={linked.length === accounts.length} onClick={() => setLinked(accounts.map((a) => a.id))}><Plus className="h-4 w-4" /> Asociar todos</Button>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {accounts.filter((a) => linked.includes(a.id)).map((a) => (
