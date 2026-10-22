@@ -1,27 +1,26 @@
-# DeToditoOutlet — Panel de ventas sociales (prototipo)
+# Momo AI — CRM omnicanal con IA para vender por redes sociales
 
-Este proyecto es una maqueta interactiva estática para desplegar en Vercel.
+Frontend navegable (React + Vite + Tailwind + lucide-react) del SaaS de automatización de ventas por WhatsApp, Instagram, Messenger y TikTok.
 
-## Incluye
-- Menú lateral y submenú de operaciones.
-- Bandeja de mensajes con embudo por etapas.
-- Conversaciones de ejemplo para Messenger, Instagram y WhatsApp.
-- Búsqueda y filtros.
-- Modal de conversación con respuestas de prueba, propuesta IA simulada y derivación a vendedor.
-- Diseño responsive para escritorio y móvil.
+## Vistas incluidas
+- **Inicio**: resumen del día y tickets que requieren a un humano.
+- **Embudo**: Kanban con arrastrar y soltar, filtros por canal, buscador, estados (abiertos/todos/cerrados), totales en CLP y vista de lista.
+- **Chat**: bandeja omnicanal de 3 columnas con filtros, respuesta manual y pausar/activar IA por conversación.
+- **Asistente**: gestor de asistentes de IA (crear, buscar).
+- **Canales**: cuentas conectadas y asociación de canales a embudos.
+- **Analítica**: KPIs, cobertura de IA, heatmap por horario, ruta del ticket (Sankey) y dona IA vs humano.
+- **CRM**: tabla de clientes.
+- **Ajustes → Plan y facturación**: planes en CLP para vender la plataforma.
 
-## Importante
-- No está conectado a Facebook/Meta, Instagram, WhatsApp, Supabase ni a un proveedor de IA.
-- Los contactos y mensajes son ficticios.
-- Los botones de IA solo simulan una propuesta en el navegador.
-- No utilizar con datos reales hasta implementar autenticación, permisos, aislamiento multiempresa y backend seguro.
+Todos los datos son de prueba (mock). Aún no hay backend: el siguiente paso es Supabase (base de datos, autenticación y separación por empresa) más los webhooks de Meta y el agente de IA.
+
+## Desarrollo
+```bash
+npm install
+npm run dev
+```
 
 ## Desplegar en Vercel
-1. Sube esta carpeta a un repositorio de GitHub.
-2. En Vercel, importa el repositorio.
-3. Framework Preset: `Other`.
-4. Build Command: dejar vacío.
-5. Output Directory: `.` (raíz del proyecto).
-6. Deploy.
+Importa el repositorio; Vercel detecta Vite automáticamente (build `npm run build`, salida `dist`).
 
-También puedes desplegar la carpeta mediante Vercel CLI si la tienes instalada.
+El prototipo estático anterior quedó en `legacy/`.
