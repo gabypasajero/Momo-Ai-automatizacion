@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Paleta DTO (DeToditoOutlet). Cada empresa puede sobrescribir estas variables para su marca blanca. */
+:root {
+  /* Paleta de detoditooutlet.cl (estilos.css de la tienda). Cada empresa puede sobrescribirla (marca blanca). */
+  --brand-50: 255 243 246;   /* #FFF3F6 */
+  --brand-100: 247 217 226;  /* #F7D9E2 rosa claro */
+  --brand-200: 240 188 205;
+  --brand-300: 227 147 174;
+  --brand-400: 207 106 142;
+  --brand-500: 189 74 115;
+  --brand-600: 168 50 94;    /* #A8325E rosa DTO (botones principales) */
+  --brand-700: 140 41 80;
+  --brand-800: 110 32 64;
+  --brand-900: 79 23 46;
+  --accent: 142 108 201;     /* lila del banner "Diseña tu mueble" */
+  --ink: 58 42 51;           /* #3A2A33 */
+  --muted: 112 86 99;        /* #705663 · 6,4:1 sobre blanco */
+  --line: 242 220 225;       /* #F2DCE1 */
+  --surface: 255 248 246;    /* #FFF8F6 fondo crema */
+  --success: 30 122 76;      /* #1E7A4C verde DTO */
+  --success-soft: 221 242 230; /* #DDF2E6 */
+  --success-chart: 63 163 111;
+  --danger: 163 38 42;       /* #A3262A */
+  --danger-soft: 255 240 241;
+  --warning: 140 88 14;
+  --warning-soft: 255 246 223;
+  --warning-chart: 240 160 70;
+}
+
+body { @apply bg-surface text-ink antialiased; }
+h1, h2, h3 { font-family: var(--font-display), var(--font-sans), sans-serif; }
+.scroll-thin::-webkit-scrollbar { height: 8px; width: 8px; }
+.scroll-thin::-webkit-scrollbar-thumb { @apply bg-line rounded-full; }
+
+/* Párpados de Momo: ocultos por defecto (se animan al parpadear). */
+.momo-lid { transform-box: fill-box; transform-origin: center top; transform: scaleY(0); }
+.momo-pupils { transform: translate(var(--momo-px, 0px), var(--momo-py, 0px)); transition: transform 120ms ease-out; }
+
+/* ---------- Acompañante Momo ---------- */
+.momo-svg .momo-leg-l, .momo-svg .momo-leg-r, .momo-svg .momo-arm-l, .momo-svg .momo-arm-r, .momo-svg .momo-tail {
+  transform-box: view-box;
+  transition: transform 300ms ease;
+}
+.momo-svg .momo-leg-l { transform-origin: 45px 102px; }
+.momo-svg .momo-leg-r { transform-origin: 55px 102px; }
+.momo-svg .momo-arm-l { transform-origin: 41px 65px; }
+.momo-svg .momo-arm-r { transform-origin: 59px 65px; }
+.momo-svg .momo-tail { transform-origin: 60px 100px; }
+
+/* Parpadeo */
+.momo-blink .momo-lid { transform: scaleY(1); transition: transform 70ms ease-in; }
+.momo-lid { transition: transform 110ms ease-out; }
+
+/* Reposo: cola que se balancea y respiración */
+@keyframes momo-tail-sway { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(5deg); } }
+@keyframes momo-breathe { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(1.5px); } }
+.momo-idle .momo-tail { animation: momo-tail-sway 3.2s ease-in-out infinite; }
+.momo-idle { animation: momo-breathe 3.2s ease-in-out infinite; }
+
+/* Caminar: piernas y brazos alternados, pequeño rebote */
+@keyframes momo-step-a { 0%, 100% { transform: rotate(14deg); } 50% { transform: rotate(-14deg); } }
+@keyframes momo-step-b { 0%, 100% { transform: rotate(-14deg); } 50% { transform: rotate(14deg); } }
+@keyframes momo-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2.5px); } }
+.momo-walk .momo-leg-l, .momo-walk .momo-arm-r { animation: momo-step-a 0.5s linear infinite; }
+.momo-walk .momo-leg-r, .momo-walk .momo-arm-l { animation: momo-step-b 0.5s linear infinite; }
+.momo-walk .momo-tail { animation: momo-tail-sway 0.5s ease-in-out infinite; }
+.momo-walk { animation: momo-bob 0.25s ease-in-out infinite; }
+
+/* Colgado de la barra superior: brazos arriba y balanceo */
+@keyframes momo-swing { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+.momo-hang .momo-arm-l { transform: rotate(158deg); }
+.momo-hang .momo-arm-r { transform: rotate(-158deg); }
+.momo-hang .momo-leg-l { transform: rotate(8deg); }
+.momo-hang .momo-leg-r { transform: rotate(-8deg); }
+.momo-hang .momo-tail { animation: momo-tail-sway 2s ease-in-out infinite; }
+.momo-swing { animation: momo-swing 2.4s ease-in-out infinite; transform-origin: 50% 0; }
+
+/* Saludo */
+@keyframes momo-wave { 0%, 100% { transform: rotate(150deg); } 50% { transform: rotate(120deg); } }
+.momo-wave .momo-arm-r { animation: momo-wave 0.45s ease-in-out 4; }
+
+@keyframes momo-pop { from { opacity: 0; transform: translateY(6px) scale(.96); } to { opacity: 1; transform: none; } }
+.momo-pop { animation: momo-pop 180ms ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .momo-svg *, .momo-idle, .momo-walk, .momo-swing { animation: none !important; transition: none !important; }
+}
