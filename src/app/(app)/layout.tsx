@@ -3,6 +3,7 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { SubNav } from '@/components/layout/SubNav'
 import { Topbar } from '@/components/layout/Topbar'
 import { Button, EmptyState } from '@/components/ui'
+import { MomoCompanion } from '@/features/assistant/MomoCompanion'
 import { signOut } from '@/features/auth/actions'
 import { NoOrganizationError, getCurrentUser, getRepository } from '@/lib/data'
 import type { Organization } from '@/lib/data'
@@ -38,6 +39,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         />
         <main className="scroll-thin min-h-0 flex-1 overflow-auto p-4">{children}</main>
       </div>
+      <MomoCompanion />
     </div>
   )
 }

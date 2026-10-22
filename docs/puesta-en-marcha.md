@@ -49,3 +49,23 @@ Las cuentas de la tienda DTO (admins y vendedores) ya existen en este proyecto: 
 - `src/lib/data/index.ts` → `getRepository()` elige `SupabaseRepository` o los datos de prueba, una vez por request.
 - `src/lib/data/supabase.ts` traduce las tablas de `momo` al modelo de las pantallas y filtra por la empresa activa.
 - `src/features/auth/` contiene el login (server action) y el cierre de sesión.
+
+## 5. Activar la inteligencia de Momo (asistente para vendedores)
+
+Momo, la mascota, recorre el panel y al tocarlo abre un chat de ayuda para el equipo (no para clientes).
+Sin clave funciona en **modo atajos**; con clave entiende preguntas y hace tareas:
+
+- `buscar_productos`: precios y ofertas del catálogo de la empresa.
+- `ver_conocimiento` / `agregar_conocimiento`: revisa y guarda políticas del negocio (pide confirmación antes de guardar).
+- `ir_a`: lleva a una pantalla, siempre en la misma pestaña.
+
+Para activarla:
+
+1. Crea una clave en **console.anthropic.com → API Keys** (la cuenta necesita saldo o método de pago).
+2. En Vercel → proyecto `momo-ai-automatizacion` → **Settings → Environment Variables**:
+   `ANTHROPIC_API_KEY` = la clave, marcada como **Sensitive**, en Production y Preview. (Esta sí es secreta: nunca con prefijo `NEXT_PUBLIC_`.)
+3. Vuelve a publicar (Deployments → ⋯ → Redeploy).
+
+Detalles técnicos: `src/lib/assistant/seller-assistant.ts` (Tool Runner del SDK `@anthropic-ai/sdk`, modelo `claude-opus-5-5`
+con esfuerzo `low` para respuestas rápidas y fallback del servidor ante rechazos) y `src/app/api/asistente/route.ts`
+(exige sesión; las herramientas actúan sobre la empresa activa con las reglas RLS).

@@ -1,53 +1,62 @@
+import type { CSSProperties } from 'react'
 import { cn } from '@/lib/cn'
 
 /**
- * Momo, la mascota de la app: un lemur alado original (no basado en ningún personaje existente).
- * Rasgos propios: cara crema sin antifaz, mejillas rosadas, interior de orejas rosa DTO,
- * iris lila, alas pequeñas lila y cola con anillos frambuesa.
+ * Momo, la mascota de la app: un lemur de cola anillada estilizado (diseño propio,
+ * basado en el animal real, no en ningún personaje existente).
+ * Rasgos propios: pelaje taupe con antifaz crema, ojos ámbar, interior de orejas
+ * rosado y cola con anillos frambuesa DTO.
  *
- * - `variant="face"`: solo la cabeza (logo, avatares, burbuja de la IA).
- * - `variant="full"`: cuerpo completo con alas (ingreso, estados vacíos).
+ * Las partes llevan clases `momo-*` para que el acompañante animado las mueva
+ * (ojos que siguen al cursor, parpadeo, pasos y cola).
+ *
+ * - `variant="face"`: solo la cabeza (logo, avatares, firma de la IA).
+ * - `variant="full"`: cuerpo completo (ingreso, acompañante, estados vacíos).
  */
 
 const C = {
-  fur: '#FBF3EA',
-  furShade: '#EEDFCF',
+  fur: '#C9BBAF',
+  furDark: '#8C7A70',
+  cream: '#F6EEE6',
   line: '#3A2A33',
-  ear: '#E393AE',
-  cheek: '#F2B8C9',
-  iris: '#8E6CC9',
-  wing: '#C9B6EC',
-  wingVein: '#8E6CC9',
-  tail: '#A8325E',
+  ear: '#E7A9BC',
+  eye: '#E3A431',
+  nose: '#3A2A33',
+  ring: '#A8325E',
 }
+
+const STROKE = { stroke: C.line, strokeWidth: 1.3, strokeLinejoin: 'round' as const, strokeLinecap: 'round' as const }
 
 function Head() {
   return (
-    <g>
-      {/* Orejas: anchas y abiertas hacia los lados (silueta de lemur alado, no de conejo) */}
-      <path d="M21 31 C11 32 2 25 2 13 C11 10 23 16 28 25 Z" fill={C.fur} stroke={C.line} strokeWidth="1.6" strokeLinejoin="round" />
-      <path d="M20 28 C12 28 6 22 6 16 C12 15 20 19 24 25 Z" fill={C.ear} />
-      <path d="M43 31 C53 32 62 25 62 13 C53 10 41 16 36 25 Z" fill={C.fur} stroke={C.line} strokeWidth="1.6" strokeLinejoin="round" />
-      <path d="M44 28 C52 28 58 22 58 16 C52 15 44 19 40 25 Z" fill={C.ear} />
-      {/* Cabeza */}
-      <ellipse cx="32" cy="38" rx="17" ry="15.5" fill={C.fur} stroke={C.line} strokeWidth="1.6" />
-      {/* Mechón en la frente */}
-      <path d="M28 24 Q32 19 36 24 Q32 22.5 28 24 Z" fill={C.furShade} />
-      {/* Mejillas */}
-      <ellipse cx="21" cy="44" rx="3.6" ry="2.4" fill={C.cheek} />
-      <ellipse cx="43" cy="44" rx="3.6" ry="2.4" fill={C.cheek} />
-      {/* Ojos grandes con iris lila y brillo */}
-      <circle cx="25" cy="37" r="5.6" fill="#fff" stroke={C.line} strokeWidth="1.3" />
-      <circle cx="39" cy="37" r="5.6" fill="#fff" stroke={C.line} strokeWidth="1.3" />
-      <circle cx="25.6" cy="37.6" r="3.6" fill={C.iris} />
-      <circle cx="38.4" cy="37.6" r="3.6" fill={C.iris} />
-      <circle cx="25.8" cy="38" r="1.9" fill={C.line} />
-      <circle cx="38.2" cy="38" r="1.9" fill={C.line} />
-      <circle cx="24.3" cy="36.1" r="1.1" fill="#fff" />
-      <circle cx="36.9" cy="36.1" r="1.1" fill="#fff" />
-      {/* Nariz de corazón y sonrisa */}
-      <path d="M32 44.2 C30.6 42.8 29.6 43.9 30.4 44.9 L32 46.4 L33.6 44.9 C34.4 43.9 33.4 42.8 32 44.2 Z" fill={C.tail} />
-      <path d="M29 48 Q32 50.6 35 48" fill="none" stroke={C.line} strokeWidth="1.3" strokeLinecap="round" />
+    <g className="momo-head">
+      {/* Orejas grandes hacia arriba y afuera */}
+      <path d="M37 31 C27 27 18 14 20 7 C28 7 39 17 43 27 Z" fill={C.fur} {...STROKE} />
+      <path d="M36 27 C29 23 24 15 24 11 C29 12 36 18 39 25 Z" fill={C.ear} />
+      <path d="M63 31 C73 27 82 14 80 7 C72 7 61 17 57 27 Z" fill={C.fur} {...STROKE} />
+      <path d="M64 27 C71 23 76 15 76 11 C71 12 64 18 61 25 Z" fill={C.ear} />
+      {/* Cabeza de lemur: frente ancha y hocico afinado */}
+      <path d="M30 37 C30 25 40 20 50 20 C60 20 70 25 70 37 C70 47 60 56 50 58 C40 56 30 47 30 37 Z" fill={C.fur} {...STROKE} />
+      {/* Antifaz claro (crema, no oscuro) */}
+      <path d="M35 39 C35 31 43 28 50 32 C57 28 65 31 65 39 C65 47 57 52.5 50 54.5 C43 52.5 35 47 35 39 Z" fill={C.cream} />
+      {/* Cejas */}
+      <path d="M38.5 33.5 Q43 31 47 33.3" fill="none" stroke={C.furDark} strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M61.5 33.5 Q57 31 53 33.3" fill="none" stroke={C.furDark} strokeWidth="1.4" strokeLinecap="round" />
+      {/* Ojos ámbar; las pupilas se mueven con --momo-px / --momo-py */}
+      <circle cx="43" cy="39.5" r="4.3" fill={C.eye} stroke={C.line} strokeWidth="1.1" />
+      <circle cx="57" cy="39.5" r="4.3" fill={C.eye} stroke={C.line} strokeWidth="1.1" />
+      <g className="momo-pupils">
+        <circle cx="43" cy="39.5" r="2" fill={C.line} />
+        <circle cx="57" cy="39.5" r="2" fill={C.line} />
+        <circle cx="42.2" cy="38.6" r="0.8" fill="#fff" />
+        <circle cx="56.2" cy="38.6" r="0.8" fill="#fff" />
+      </g>
+      {/* Párpados para parpadear */}
+      <ellipse className="momo-lid" cx="43" cy="39.5" rx="4.6" ry="4.6" fill={C.fur} />
+      <ellipse className="momo-lid" cx="57" cy="39.5" rx="4.6" ry="4.6" fill={C.fur} />
+      {/* Nariz y boca */}
+      <path d="M47.8 47 L52.2 47 L50 49.6 Z" fill={C.nose} />
+      <path d="M47 51.3 Q50 53.4 53 51.3" fill="none" stroke={C.line} strokeWidth="1.1" strokeLinecap="round" />
     </g>
   )
 }
@@ -55,47 +64,59 @@ function Head() {
 function Body() {
   return (
     <g>
-      {/* Cola en espiral con anillos frambuesa (detrás del cuerpo) */}
-      <path d="M72 96 C92 100 106 88 102 74 C99 63 86 62 85 71 C84 77 92 78 93 72" fill="none" stroke={C.line} strokeWidth="8" strokeLinecap="round" />
-      <path d="M72 96 C92 100 106 88 102 74 C99 63 86 62 85 71 C84 77 92 78 93 72" fill="none" stroke={C.fur} strokeWidth="5.4" strokeLinecap="round" />
-      <path d="M72 96 C92 100 106 88 102 74 C99 63 86 62 85 71 C84 77 92 78 93 72" fill="none" stroke={C.tail} strokeWidth="5.4" strokeDasharray="4 5" />
-      {/* Alas pequeñas lila con borde ondulado, desde los hombros */}
-      <path d="M46 72 C36 60 22 56 10 60 C14 66 14 72 20 74 C22 78 28 80 32 79 C36 82 42 82 46 80 Z" fill={C.wing} stroke={C.line} strokeWidth="1.5" strokeLinejoin="round" />
-      <path d="M45 74 L20 63 M45 77 L28 72" stroke={C.wingVein} strokeWidth="1" strokeLinecap="round" opacity="0.55" />
-      <path d="M74 72 C84 60 98 56 110 60 C106 66 106 72 100 74 C98 78 92 80 88 79 C84 82 78 82 74 80 Z" fill={C.wing} stroke={C.line} strokeWidth="1.5" strokeLinejoin="round" />
-      <path d="M75 74 L100 63 M75 77 L92 72" stroke={C.wingVein} strokeWidth="1" strokeLinecap="round" opacity="0.55" />
-      {/* Cuerpo, pancita y manitos */}
-      <ellipse cx="60" cy="84" rx="16" ry="17" fill={C.fur} stroke={C.line} strokeWidth="1.6" />
-      <ellipse cx="60" cy="88" rx="9.5" ry="10.5" fill={C.furShade} />
-      <ellipse cx="53.5" cy="80" rx="3.6" ry="3" fill={C.fur} stroke={C.line} strokeWidth="1.3" />
-      <ellipse cx="66.5" cy="80" rx="3.6" ry="3" fill={C.fur} stroke={C.line} strokeWidth="1.3" />
-      {/* Patitas */}
-      <ellipse cx="52" cy="100" rx="5.5" ry="3.4" fill={C.fur} stroke={C.line} strokeWidth="1.4" />
-      <ellipse cx="68" cy="100" rx="5.5" ry="3.4" fill={C.fur} stroke={C.line} strokeWidth="1.4" />
+      {/* Cola larga con anillos frambuesa */}
+      <g className="momo-tail">
+        <path d="M60 100 C80 104 93 92 89 74 C86 61 79 56 83 44" fill="none" stroke={C.line} strokeWidth="8" strokeLinecap="round" />
+        <path d="M60 100 C80 104 93 92 89 74 C86 61 79 56 83 44" fill="none" stroke={C.cream} strokeWidth="5.6" strokeLinecap="round" />
+        <path d="M60 100 C80 104 93 92 89 74 C86 61 79 56 83 44" fill="none" stroke={C.ring} strokeWidth="5.6" strokeDasharray="5 5" />
+      </g>
+      {/* Piernas */}
+      <g className="momo-leg-l">
+        <path d="M45 102 L43 119" fill="none" stroke={C.line} strokeWidth="6.6" strokeLinecap="round" />
+        <path d="M45 102 L43 119" fill="none" stroke={C.fur} strokeWidth="4.4" strokeLinecap="round" />
+        <ellipse cx="41.5" cy="120.5" rx="4.6" ry="2.4" fill={C.fur} {...STROKE} />
+      </g>
+      <g className="momo-leg-r">
+        <path d="M55 102 L57 119" fill="none" stroke={C.line} strokeWidth="6.6" strokeLinecap="round" />
+        <path d="M55 102 L57 119" fill="none" stroke={C.fur} strokeWidth="4.4" strokeLinecap="round" />
+        <ellipse cx="58.5" cy="120.5" rx="4.6" ry="2.4" fill={C.fur} {...STROKE} />
+      </g>
+      {/* Cuerpo esbelto y pecho crema */}
+      <path d="M39 60 C35 74 35 95 41 103 C46 108 54 108 59 103 C65 95 65 74 61 60 C57 56 43 56 39 60 Z" fill={C.fur} {...STROKE} />
+      <path d="M44 66 C42 78 43 94 47 100 C49 102 51 102 53 100 C57 94 58 78 56 66 C53 63 47 63 44 66 Z" fill={C.cream} />
+      {/* Brazos */}
+      <g className="momo-arm-l">
+        <path d="M41 65 C35 74 35 85 38 92" fill="none" stroke={C.line} strokeWidth="6" strokeLinecap="round" />
+        <path d="M41 65 C35 74 35 85 38 92" fill="none" stroke={C.fur} strokeWidth="3.8" strokeLinecap="round" />
+      </g>
+      <g className="momo-arm-r">
+        <path d="M59 65 C65 74 65 85 62 92" fill="none" stroke={C.line} strokeWidth="6" strokeLinecap="round" />
+        <path d="M59 65 C65 74 65 85 62 92" fill="none" stroke={C.fur} strokeWidth="3.8" strokeLinecap="round" />
+      </g>
     </g>
   )
 }
 
-export function Mascot({ variant = 'face', className, title = 'Momo' }: {
+export function Mascot({ variant = 'face', className, title = 'Momo', style }: {
   variant?: 'face' | 'full'
   className?: string
   /** Texto para lectores de pantalla; usa "" si es decorativa. */
   title?: string
+  style?: CSSProperties
 }) {
   const decorative = title === ''
+  const a11y = decorative ? { 'aria-hidden': true } : { role: 'img', 'aria-label': title }
   if (variant === 'face') {
     return (
-      <svg viewBox="0 8 64 48" className={cn('shrink-0', className)} role={decorative ? undefined : 'img'} aria-hidden={decorative || undefined} aria-label={decorative ? undefined : title}>
+      <svg viewBox="16 4 68 56" className={cn('momo-svg shrink-0', className)} style={style} {...a11y}>
         <Head />
       </svg>
     )
   }
   return (
-    <svg viewBox="0 12 120 96" className={cn('shrink-0', className)} role={decorative ? undefined : 'img'} aria-hidden={decorative || undefined} aria-label={decorative ? undefined : title}>
+    <svg viewBox="14 2 84 124" className={cn('momo-svg shrink-0', className)} style={style} {...a11y}>
       <Body />
-      <g transform="translate(28 14)">
-        <Head />
-      </g>
+      <Head />
     </svg>
   )
 }

@@ -18,4 +18,6 @@ export interface Repository {
   /** Catálogo; con `query` usa la búsqueda de texto en español. */
   getProducts(query?: string): Promise<{ items: Product[]; total: number }>
   getKnowledge(): Promise<KnowledgeEntry[]>
+  /** Agrega una política o dato del negocio al conocimiento de la IA de la empresa activa. */
+  addKnowledgeEntry(entry: { title: string; content: string }): Promise<KnowledgeEntry>
 }

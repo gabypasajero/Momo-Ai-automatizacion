@@ -157,4 +157,9 @@ export const mockRepository: Repository = {
     return { items, total: items.length }
   },
   getKnowledge: async () => knowledge,
+  addKnowledgeEntry: async ({ title, content }) => {
+    const entry = { id: `k${knowledge.length + 1}`, title, content }
+    knowledge.push(entry)
+    return entry
+  },
 }

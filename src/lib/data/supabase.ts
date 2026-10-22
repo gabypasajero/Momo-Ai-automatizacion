@@ -218,6 +218,19 @@ export class SupabaseRepository implements Repository {
     return data ?? []
   }
 
+  async addKnowledgeEntry({ title, content }: { title: string; content: string }): Promise<KnowledgeEntry> {
+    // Se asocia al asistente activo de la empresa (si existe); RLS exige rol owner/admin/agent.
+    const { data: assistant } = await this.db
+      .from('ai_assistants').select('id').eq('organization_id', this.orgId).eq('active', true).order('created_at').limit(1).maybeSingle()
+    const { data, error } = await this.db
+      .from('knowledge_entries')
+      .insert({ organization_id: this.orgId, assistant_id: assistant?.id ?? null, title, content })
+      .select('id, title, content')
+      .single()
+    if (error) throw error
+    return data
+  }
+
   /** Métricas de los últimos 30 días, calculadas a partir de mensajes, conversaciones y tickets. */
   async getAnalyticsSummary(): Promise<AnalyticsSummary> {
     const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString()
