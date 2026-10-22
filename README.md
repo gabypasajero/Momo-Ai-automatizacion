@@ -12,7 +12,7 @@ Frontend navegable (React + Vite + Tailwind + lucide-react) del SaaS de automati
 - **CRM**: tabla de clientes.
 - **Ajustes → Plan y facturación**: planes en CLP para vender la plataforma.
 
-Todos los datos son de prueba (mock). Aún no hay backend: el siguiente paso es Supabase (base de datos, autenticación y separación por empresa) más los webhooks de Meta y el agente de IA.
+ (mock). Aún no hay backend: el siguiente paso es Supabase (base de datos, autenticación y separación por empresa) más los webhooks de Meta y el agente de IA.
 
 ## Desarrollo
 ```bash

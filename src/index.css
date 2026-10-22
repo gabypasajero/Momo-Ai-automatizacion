@@ -2,6 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
-body { @apply bg-slate-50 text-slate-800 antialiased; }
+/* Paleta DTO (DeToditoOutlet). Cada empresa puede sobrescribir estas variables para su marca blanca. */
+:root {
+  --brand-50: 246 245 255;
+  --brand-100: 240 237 255;
+  --brand-200: 221 216 253;
+  --brand-300: 193 184 250;
+  --brand-400: 154 140 242;
+  --brand-500: 117 101 232; /* #7565e8 */
+  --brand-600: 97 80 214;
+  --brand-700: 80 64 181;
+  --brand-800: 65 52 143;
+  --brand-900: 47 39 102;
+  --accent: 79 141 247;      /* #4f8df7 */
+  --ink: 29 36 51;           /* #1d2433 */
+  --muted: 119 129 151;      /* #778197 */
+  --line: 231 235 242;       /* #e7ebf2 */
+  --surface: 245 247 251;    /* #f5f7fb */
+  --success: 22 132 91;      /* #16845b */
+  --success-soft: 232 248 240;
+  --success-chart: 45 186 132;
+  --danger: 198 77 88;       /* #c64d58 */
+  --danger-soft: 255 240 241;
+  --warning: 165 107 19;     /* #a56b13 */
+  --warning-soft: 255 246 223;
+  --warning-chart: 240 160 70;
+}
+
+body { @apply bg-surface text-ink antialiased; }
 .scroll-thin::-webkit-scrollbar { height: 8px; width: 8px; }
-.scroll-thin::-webkit-scrollbar-thumb { @apply bg-slate-300 rounded-full; }
+.scroll-thin::-webkit-scrollbar-thumb { @apply bg-line rounded-full; }

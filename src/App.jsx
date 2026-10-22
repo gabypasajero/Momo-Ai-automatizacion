@@ -13,17 +13,17 @@ import {
 /* ------------------------------------------------------------------ */
 
 const CHANNELS = {
-  whatsapp: { label: 'WhatsApp', icon: MessageCircle, cls: 'bg-emerald-500' },
+  whatsapp: { label: 'WhatsApp', icon: MessageCircle, cls: 'bg-success-chart' },
   instagram: { label: 'Instagram', icon: Camera, cls: 'bg-gradient-to-br from-amber-400 via-pink-500 to-purple-600' },
   messenger: { label: 'Messenger', icon: MessageSquare, cls: 'bg-gradient-to-br from-sky-400 to-blue-600' },
   tiktok: { label: 'TikTok', icon: Music2, cls: 'bg-slate-900' },
 }
 
 const STAGES = [
-  { id: 'human', name: 'Asistencia humana', emoji: '🙋', tone: 'border-t-rose-400' },
-  { id: 'standard', name: 'Asesoría muebles estándar', emoji: '🪑', tone: 'border-t-blue-500' },
-  { id: 'kitchen', name: 'Proyecto cocina a medida', emoji: '🍳', tone: 'border-t-violet-500' },
-  { id: 'quote', name: 'Revisión de cotización', emoji: '📄', tone: 'border-t-amber-400' },
+  { id: 'human', name: 'Asistencia humana', emoji: '🙋', tone: 'border-t-danger' },
+  { id: 'standard', name: 'Asesoría muebles estándar', emoji: '🪑', tone: 'border-t-brand-500' },
+  { id: 'kitchen', name: 'Proyecto cocina a medida', emoji: '🍳', tone: 'border-t-accent' },
+  { id: 'quote', name: 'Revisión de cotización', emoji: '📄', tone: 'border-t-warning-chart' },
 ]
 
 const INITIAL_TICKETS = [
@@ -144,21 +144,21 @@ function ChannelIcon({ channel, size = 'sm' }) {
 }
 
 const Card = ({ className = '', children }) => (
-  <div className={`rounded-xl border border-slate-200 bg-white ${className}`}>{children}</div>
+  <div className={`rounded-2xl border border-line bg-white shadow-card ${className}`}>{children}</div>
 )
 
 const Btn = ({ primary, className = '', children, ...p }) => (
   <button
     {...p}
     className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-      primary ? 'bg-blue-600 text-white hover:bg-blue-700' : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+      primary ? 'bg-brand-600 text-white hover:bg-brand-700' : 'border border-line bg-white text-slate-700 hover:bg-surface'
     } ${className}`}
   >
     {children}
   </button>
 )
 
-const Avatar = ({ name, cls = 'bg-blue-600' }) => (
+const Avatar = ({ name, cls = 'bg-brand-600' }) => (
   <span className={`${cls} inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white`}>
     {name.slice(0, 1).toUpperCase()}
   </span>
@@ -166,9 +166,9 @@ const Avatar = ({ name, cls = 'bg-blue-600' }) => (
 
 function SearchBox({ value, onChange, placeholder, className = '' }) {
   return (
-    <label className={`flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm ${className}`}>
-      <Search className="h-4 w-4 text-slate-400" />
-      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="w-full bg-transparent outline-none placeholder:text-slate-400" />
+    <label className={`flex items-center gap-2 rounded-lg border border-line bg-white px-3 py-1.5 text-sm ${className}`}>
+      <Search className="h-4 w-4 text-muted" />
+      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="w-full bg-transparent outline-none placeholder:text-muted" />
     </label>
   )
 }
@@ -195,15 +195,15 @@ function PipelineView({ tickets, setTickets }) {
   return (
     <div className="flex h-full flex-col gap-3">
       <Card className="flex flex-wrap items-center gap-2 p-2">
-        <button className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-sm">
+        <button className="flex items-center gap-2 rounded-lg border border-line px-3 py-1.5 text-sm">
           Ventas | Muebles y Hogar <ChevronDown className="h-4 w-4" />
         </button>
-        <div className="flex rounded-lg border border-slate-200 p-0.5">
+        <div className="flex rounded-lg border border-line p-0.5">
           {[['kanban', Columns3], ['list', List]].map(([m, I]) => (
-            <button key={m} onClick={() => setMode(m)} className={`rounded-md p-1.5 ${mode === m ? 'bg-blue-50 text-blue-600' : 'text-slate-500'}`}><I className="h-4 w-4" /></button>
+            <button key={m} onClick={() => setMode(m)} className={`rounded-md p-1.5 ${mode === m ? 'bg-brand-50 text-brand-600' : 'text-muted'}`}><I className="h-4 w-4" /></button>
           ))}
         </div>
-        <div className="flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1">
+        <div className="flex items-center gap-1 rounded-lg border border-line px-2 py-1">
           {['whatsapp', 'instagram', 'messenger'].map((c) => (
             <button key={c} onClick={() => toggleChannel(c)} className={`rounded-md transition ${channelFilter.length && !channelFilter.includes(c) ? 'opacity-30' : ''}`}>
               <ChannelIcon channel={c} />
@@ -211,9 +211,9 @@ function PipelineView({ tickets, setTickets }) {
           ))}
         </div>
         <SearchBox value={query} onChange={setQuery} placeholder="Buscar contacto" className="w-56" />
-        <div className="ml-auto flex rounded-lg border border-slate-200 p-0.5 text-sm">
+        <div className="ml-auto flex rounded-lg border border-line p-0.5 text-sm">
           {[['open', 'Abiertos'], ['all', 'Todos'], ['closed', 'Cerrados']].map(([s, l]) => (
-            <button key={s} onClick={() => setStatus(s)} className={`rounded-md px-3 py-1 ${status === s ? 'bg-blue-600 text-white' : 'text-slate-600'}`}>{l}</button>
+            <button key={s} onClick={() => setStatus(s)} className={`rounded-md px-3 py-1 ${status === s ? 'bg-brand-600 text-white' : 'text-slate-600'}`}>{l}</button>
           ))}
         </div>
       </Card>
@@ -228,44 +228,44 @@ function PipelineView({ tickets, setTickets }) {
                 key={s.id}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={() => dragId && update(dragId, { stage: s.id })}
-                className={`flex w-80 shrink-0 flex-col rounded-xl border border-t-4 border-slate-200 bg-slate-100/70 ${s.tone}`}
+                className={`flex w-80 shrink-0 flex-col rounded-xl border border-t-4 border-line bg-slate-100/70 ${s.tone}`}
               >
                 <div className="flex items-center justify-between px-3 py-2.5">
                   <div>
                     <p className="text-sm font-semibold">{s.emoji} {s.name}</p>
-                    <p className="text-xs text-slate-500">{fmtCLP(total)} CLP · {items.length} tickets</p>
+                    <p className="text-xs text-muted">{fmtCLP(total)} CLP · {items.length} tickets</p>
                   </div>
-                  <Settings className="h-4 w-4 text-slate-400" />
+                  <Settings className="h-4 w-4 text-muted" />
                 </div>
                 <div className="scroll-thin flex flex-1 flex-col gap-2 overflow-y-auto px-2 pb-2">
                   {items.map((t) => (
                     <div key={t.id} draggable onDragStart={() => setDragId(t.id)} onDragEnd={() => setDragId(null)}
-                      className="cursor-grab rounded-lg border border-slate-200 bg-white p-3 shadow-sm active:cursor-grabbing">
+                      className="cursor-grab rounded-lg border border-line bg-white p-3 shadow-sm active:cursor-grabbing">
                       <div className="flex items-center gap-2">
                         <ChannelIcon channel={t.channel} />
                         <span className="truncate text-sm font-semibold">{t.name}</span>
-                        <span className={`ml-auto shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${t.ai ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-600'}`}>
+                        <span className={`ml-auto shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${t.ai ? 'bg-success-soft text-success' : 'bg-danger-soft text-danger'}`}>
                           {t.ai ? 'Atendido por IA' : 'No atendido'}
                         </span>
                       </div>
                       <p className="mt-2 line-clamp-2 text-xs text-slate-600">{t.msg}</p>
-                      <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+                      <div className="mt-3 flex items-center justify-between text-xs text-muted">
                         <span>{t.time} · Hoy</span>
-                        {t.status !== 'open' && <span className={t.status === 'won' ? 'text-emerald-600' : 'text-rose-500'}>{t.status === 'won' ? 'Ganado' : 'Perdido'}</span>}
+                        {t.status !== 'open' && <span className={t.status === 'won' ? 'text-success' : 'text-danger'}>{t.status === 'won' ? 'Ganado' : 'Perdido'}</span>}
                       </div>
-                      <div className="mt-2 flex items-center justify-between border-t border-slate-100 pt-2">
+                      <div className="mt-2 flex items-center justify-between border-t border-line pt-2">
                         <span className="whitespace-nowrap text-sm font-semibold">{fmtCLP(t.value)}</span>
                         <div className="flex gap-1">
-                          <button title="Venta ganada" onClick={() => update(t.id, { status: 'won' })} className="rounded p-1 text-emerald-600 hover:bg-emerald-50"><Check className="h-4 w-4" /></button>
-                          <button title="Perdido" onClick={() => update(t.id, { status: 'lost' })} className="rounded p-1 text-rose-500 hover:bg-rose-50"><X className="h-4 w-4" /></button>
-                          <select value={t.stage} onChange={(e) => update(t.id, { stage: e.target.value })} className="max-w-[110px] rounded border border-slate-200 text-[11px]">
+                          <button title="Venta ganada" onClick={() => update(t.id, { status: 'won' })} className="rounded p-1 text-success hover:bg-success-soft"><Check className="h-4 w-4" /></button>
+                          <button title="Perdido" onClick={() => update(t.id, { status: 'lost' })} className="rounded p-1 text-danger hover:bg-danger-soft"><X className="h-4 w-4" /></button>
+                          <select value={t.stage} onChange={(e) => update(t.id, { stage: e.target.value })} className="max-w-[110px] rounded border border-line text-[11px]">
                             {STAGES.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
                           </select>
                         </div>
                       </div>
                     </div>
                   ))}
-                  {!items.length && <p className="py-6 text-center text-xs text-slate-400">Arrastra tickets aquí</p>}
+                  {!items.length && <p className="py-6 text-center text-xs text-muted">Arrastra tickets aquí</p>}
                 </div>
               </div>
             )
@@ -274,16 +274,16 @@ function PipelineView({ tickets, setTickets }) {
       ) : (
         <Card className="overflow-auto">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500">
+            <thead className="bg-surface text-left text-xs uppercase text-muted">
               <tr><th className="p-3">Cliente</th><th>Canal</th><th>Etapa</th><th>Estado IA</th><th>Valor</th><th>Hora</th></tr>
             </thead>
             <tbody>
               {visible.map((t) => (
-                <tr key={t.id} className="border-t border-slate-100">
+                <tr key={t.id} className="border-t border-line">
                   <td className="p-3 font-medium">{t.name}</td>
                   <td><ChannelIcon channel={t.channel} /></td>
                   <td>{STAGES.find((s) => s.id === t.stage).name}</td>
-                  <td className={t.ai ? 'text-emerald-600' : 'text-rose-500'}>{t.ai ? 'Atendido por IA' : 'No atendido'}</td>
+                  <td className={t.ai ? 'text-success' : 'text-danger'}>{t.ai ? 'Atendido por IA' : 'No atendido'}</td>
                   <td>{fmtCLP(t.value)}</td>
                   <td>{t.time}</td>
                 </tr>
@@ -323,16 +323,16 @@ function ChatView() {
   return (
     <div className="flex h-full gap-3">
       <Card className="hidden w-60 shrink-0 flex-col p-3 lg:flex">
-        <p className="text-xs font-semibold uppercase text-slate-500">Filtros guardados</p>
-        <button className="mt-2 flex items-center justify-between rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-500">
+        <p className="text-xs font-semibold uppercase text-muted">Filtros guardados</p>
+        <button className="mt-2 flex items-center justify-between rounded-lg border border-line px-3 py-1.5 text-xs text-muted">
           No tienes filtros guardados <Bookmark className="h-3.5 w-3.5" />
         </button>
         <div className="mt-3 grid grid-cols-2 rounded-lg bg-slate-100 p-0.5 text-sm">
           {['chat', 'correos'].map((t) => (
-            <button key={t} onClick={() => setTab(t)} className={`rounded-md py-1 capitalize ${tab === t ? 'bg-white shadow-sm' : 'text-slate-500'}`}>{t}</button>
+            <button key={t} onClick={() => setTab(t)} className={`rounded-md py-1 capitalize ${tab === t ? 'bg-white shadow-sm' : 'text-muted'}`}>{t}</button>
           ))}
         </div>
-        <div className="mt-3 divide-y divide-slate-100 text-sm">
+        <div className="mt-3 divide-y divide-line text-sm">
           {['Fecha', 'Principal', 'Orden', 'Embudo y etapa', 'Canales', 'Ejecutivos', 'Etiquetas', 'Estado del ticket'].map((f) => (
             <div key={f}>
               <button onClick={() => setOpen(open === f ? null : f)} className="flex w-full items-center justify-between py-2">
@@ -345,31 +345,31 @@ function ChatView() {
                       <input type="radio" checked={channel === c} onChange={() => setChannel(c)} /> <ChannelIcon channel={c} /> {CHANNELS[c].label}
                     </label>
                   ))}
-                  <button onClick={() => setChannel(null)} className="text-xs text-blue-600">Limpiar</button>
+                  <button onClick={() => setChannel(null)} className="text-xs text-brand-600">Limpiar</button>
                 </div>
               )}
-              {open === f && f !== 'Canales' && <p className="pb-2 text-xs text-slate-400">Sin opciones seleccionadas</p>}
+              {open === f && f !== 'Canales' && <p className="pb-2 text-xs text-muted">Sin opciones seleccionadas</p>}
             </div>
           ))}
         </div>
       </Card>
 
       <Card className="flex w-80 shrink-0 flex-col">
-        <div className="border-b border-slate-100 p-3"><SearchBox value={query} onChange={setQuery} placeholder="Buscar" /></div>
+        <div className="border-b border-line p-3"><SearchBox value={query} onChange={setQuery} placeholder="Buscar" /></div>
         <div className="scroll-thin flex-1 overflow-y-auto">
           {list.map((c) => (
-            <button key={c.id} onClick={() => setSelected(c.id)} className={`flex w-full gap-3 border-b border-slate-100 p-3 text-left hover:bg-slate-50 ${selected === c.id ? 'bg-blue-50' : ''}`}>
+            <button key={c.id} onClick={() => setSelected(c.id)} className={`flex w-full gap-3 border-b border-line p-3 text-left hover:bg-surface ${selected === c.id ? 'bg-brand-50' : ''}`}>
               <Avatar name={c.name} cls="bg-slate-800" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1">
                   <span className="truncate text-sm font-semibold">{c.name}</span>
-                  {c.unread && <span className="h-2 w-2 rounded-full bg-blue-600" />}
-                  <span className="ml-auto text-[11px] text-slate-400">{c.time}</span>
+                  {c.unread && <span className="h-2 w-2 rounded-full bg-brand-600" />}
+                  <span className="ml-auto text-[11px] text-muted">{c.time}</span>
                 </div>
-                <p className="truncate text-xs text-slate-500">{c.last}</p>
+                <p className="truncate text-xs text-muted">{c.last}</p>
                 <div className="mt-1 flex items-center gap-1">
                   <ChannelIcon channel={c.channel} />
-                  <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${c.ai ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>{c.ai ? 'IA activa' : 'IA pausada'}</span>
+                  <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${c.ai ? 'bg-success-soft text-success' : 'bg-slate-100 text-muted'}`}>{c.ai ? 'IA activa' : 'IA pausada'}</span>
                 </div>
               </div>
             </button>
@@ -380,23 +380,23 @@ function ChatView() {
       <Card className="flex min-w-0 flex-1 flex-col">
         {!chat ? (
           <div className="m-auto text-center">
-            <MessageCircle className="mx-auto h-12 w-12 text-blue-200" />
-            <p className="mt-3 font-semibold text-blue-600">Selecciona un chat de la sección izquierda</p>
-            <p className="text-sm text-slate-500">Elige una conversación de la lista para ver los mensajes aquí.</p>
+            <MessageCircle className="mx-auto h-12 w-12 text-brand-200" />
+            <p className="mt-3 font-semibold text-brand-600">Selecciona un chat de la sección izquierda</p>
+            <p className="text-sm text-muted">Elige una conversación de la lista para ver los mensajes aquí.</p>
           </div>
         ) : (
           <>
-            <div className="flex items-center gap-3 border-b border-slate-100 p-3">
+            <div className="flex items-center gap-3 border-b border-line p-3">
               <Avatar name={chat.name} cls="bg-slate-800" />
-              <div><p className="font-semibold">{chat.name}</p><p className="flex items-center gap-1 text-xs text-slate-500"><ChannelIcon channel={chat.channel} /> {CHANNELS[chat.channel].label}</p></div>
+              <div><p className="font-semibold">{chat.name}</p><p className="flex items-center gap-1 text-xs text-muted"><ChannelIcon channel={chat.channel} /> {CHANNELS[chat.channel].label}</p></div>
               <Btn onClick={toggleAI} className="ml-auto">
                 {chat.ai ? <><Pause className="h-4 w-4" /> Pausar IA</> : <><Play className="h-4 w-4" /> Activar IA</>}
               </Btn>
             </div>
-            <div className="scroll-thin flex-1 space-y-3 overflow-y-auto bg-slate-50 p-4">
+            <div className="scroll-thin flex-1 space-y-3 overflow-y-auto bg-surface p-4">
               {chat.messages.map((m, i) => (
                 <div key={i} className={`flex ${m.from === 'client' ? 'justify-start' : 'justify-end'}`}>
-                  <div className={`max-w-md rounded-2xl px-4 py-2 text-sm ${m.from === 'client' ? 'bg-white border border-slate-200' : m.from === 'ai' ? 'bg-blue-600 text-white' : 'bg-emerald-600 text-white'}`}>
+                  <div className={`max-w-md rounded-2xl px-4 py-2 text-sm ${m.from === 'client' ? 'bg-white border border-line' : m.from === 'ai' ? 'bg-brand-600 text-white' : 'bg-success text-white'}`}>
                     {m.from !== 'client' && <p className="mb-0.5 text-[10px] uppercase opacity-75">{m.from === 'ai' ? '✦ Asistente IA' : 'Ejecutivo'}</p>}
                     {m.text}
                     <p className="mt-1 text-right text-[10px] opacity-60">{m.time}</p>
@@ -404,10 +404,10 @@ function ChatView() {
                 </div>
               ))}
             </div>
-            <div className="flex gap-2 border-t border-slate-100 p-3">
+            <div className="flex gap-2 border-t border-line p-3">
               <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && send()}
                 placeholder={chat.ai ? 'La IA está respondiendo. Escribe para intervenir…' : 'Escribe un mensaje…'}
-                className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="flex-1 rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand-500" />
               <Btn primary onClick={send}><Send className="h-4 w-4" /> Enviar</Btn>
             </div>
           </>
@@ -430,8 +430,8 @@ function AssistantView() {
   return (
     <div className="space-y-4">
       <Card className="flex flex-wrap items-center gap-3 p-3">
-        <span className="rounded-lg bg-blue-600 p-2 text-white"><Bot className="h-5 w-5" /></span>
-        <div><p className="font-semibold">Tus asistentes:</p><p className="text-sm text-slate-500">Mostrando {shown.length} asistente{shown.length !== 1 && 's'}</p></div>
+        <span className="rounded-lg bg-brand-600 p-2 text-white"><Bot className="h-5 w-5" /></span>
+        <div><p className="font-semibold">Tus asistentes:</p><p className="text-sm text-muted">Mostrando {shown.length} asistente{shown.length !== 1 && 's'}</p></div>
         <div className="ml-auto flex flex-wrap gap-2">
           <Btn><Merge className="h-4 w-4" /> Fusionar asistentes</Btn>
           <SearchBox value={query} onChange={setQuery} placeholder="Buscar asistentes..." className="w-52" />
@@ -443,13 +443,13 @@ function AssistantView() {
         {shown.map((a) => (
           <Card key={a.id} className="p-4">
             <div className="flex items-center justify-between">
-              <span className="rounded-md bg-blue-600 px-2 py-0.5 text-[11px] font-medium text-white">Escenarios</span>
-              <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">100%</span>
+              <span className="rounded-md bg-brand-600 px-2 py-0.5 text-[11px] font-medium text-white">Escenarios</span>
+              <span className="rounded-md bg-success-soft px-2 py-0.5 text-[11px] font-medium text-success">100%</span>
             </div>
             <div className="mx-auto mt-3 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-3xl">{a.emoji}</div>
             <p className="mt-3 text-center font-semibold">{a.name}</p>
-            <p className="text-center text-xs text-slate-500">Utilizado en 1 embudo</p>
-            <p className="mx-auto mt-1 w-fit rounded bg-blue-50 px-2 py-0.5 text-[11px] text-blue-600">{a.pipeline}</p>
+            <p className="text-center text-xs text-muted">Utilizado en 1 embudo</p>
+            <p className="mx-auto mt-1 w-fit rounded bg-brand-50 px-2 py-0.5 text-[11px] text-brand-600">{a.pipeline}</p>
             <div className="mt-4 grid grid-cols-2 gap-2">
               <Btn className="justify-center"><Eye className="h-4 w-4" /> Ver</Btn>
               <Btn className="justify-center"><Pencil className="h-4 w-4" /> Editar</Btn>
@@ -481,8 +481,8 @@ function ChannelsView() {
     <div className="grid gap-4 xl:grid-cols-[380px_1fr]">
       <Card className="flex flex-col p-4">
         <div className="flex items-center gap-3">
-          <span className="rounded-lg bg-blue-600 p-2 text-white"><Smartphone className="h-5 w-5" /></span>
-          <div><p className="font-semibold">Canales conectados</p><p className="text-sm text-slate-500">Administra tus canales conectados</p></div>
+          <span className="rounded-lg bg-brand-600 p-2 text-white"><Smartphone className="h-5 w-5" /></span>
+          <div><p className="font-semibold">Canales conectados</p><p className="text-sm text-muted">Administra tus canales conectados</p></div>
         </div>
         <SearchBox value={query} onChange={setQuery} placeholder="Buscar canal" className="mt-4" />
         <div className="mt-2 flex-1 space-y-3">
@@ -491,15 +491,15 @@ function ChannelsView() {
             if (!accs.length) return null
             return (
               <div key={g}>
-                <p className="mt-3 text-xs font-semibold uppercase text-slate-500">{CHANNELS[g].label}</p>
+                <p className="mt-3 text-xs font-semibold uppercase text-muted">{CHANNELS[g].label}</p>
                 {accs.map((a) => (
-                  <div key={a.handle} className="mt-2 flex items-center gap-3 rounded-lg p-2 hover:bg-slate-50">
+                  <div key={a.handle} className="mt-2 flex items-center gap-3 rounded-lg p-2 hover:bg-surface">
                     <ChannelIcon channel={a.channel} size="lg" />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{a.name} {a.api && <span className="ml-1 rounded bg-emerald-100 px-1 text-[10px] text-emerald-700">API</span>}</p>
-                      <p className="truncate text-xs text-slate-500">{a.handle}</p>
+                      <p className="truncate text-sm font-medium">{a.name} {a.api && <span className="ml-1 rounded bg-success-soft px-1 text-[10px] text-success">API</span>}</p>
+                      <p className="truncate text-xs text-muted">{a.handle}</p>
                     </div>
-                    <Link2 className="h-4 w-4 text-slate-400" /><MoreVertical className="h-4 w-4 text-slate-400" />
+                    <Link2 className="h-4 w-4 text-muted" /><MoreVertical className="h-4 w-4 text-muted" />
                   </div>
                 ))}
               </div>
@@ -511,12 +511,12 @@ function ChannelsView() {
 
       <Card className="p-4">
         <div className="flex items-center gap-3">
-          <span className="rounded-lg bg-blue-600 p-2 text-white"><Columns3 className="h-5 w-5" /></span>
-          <div><p className="font-semibold">Asocia canales a tus embudos</p><p className="text-sm text-slate-500">Vincula tus canales de comunicación con tus embudos.</p></div>
+          <span className="rounded-lg bg-brand-600 p-2 text-white"><Columns3 className="h-5 w-5" /></span>
+          <div><p className="font-semibold">Asocia canales a tus embudos</p><p className="text-sm text-muted">Vincula tus canales de comunicación con tus embudos.</p></div>
         </div>
-        <div className="mt-4 rounded-xl border border-slate-200 p-3">
+        <div className="mt-4 rounded-xl border border-line p-3">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="mr-auto"><p className="text-sm font-semibold">Ventas | Muebles y Hogar</p><p className="text-xs text-slate-500">Canales asociados</p></div>
+            <div className="mr-auto"><p className="text-sm font-semibold">Ventas | Muebles y Hogar</p><p className="text-xs text-muted">Canales asociados</p></div>
             <Btn><FlaskConical className="h-4 w-4" /> A/B Testing</Btn>
             <Btn><Gauge className="h-4 w-4" /> Límite</Btn>
             <Btn><ArrowRight className="h-4 w-4" /> Ir al embudo</Btn>
@@ -524,13 +524,13 @@ function ChannelsView() {
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {ACCOUNTS.filter((a) => linked.includes(a.channel)).map((a) => (
-              <div key={a.channel} className="rounded-lg border border-slate-200 p-3">
+              <div key={a.channel} className="rounded-lg border border-line p-3">
                 <div className="flex justify-between">
                   <ChannelIcon channel={a.channel} size="lg" />
-                  <button title="Desasociar" onClick={() => setLinked((l) => l.filter((x) => x !== a.channel))}><X className="h-4 w-4 text-slate-400" /></button>
+                  <button title="Desasociar" onClick={() => setLinked((l) => l.filter((x) => x !== a.channel))}><X className="h-4 w-4 text-muted" /></button>
                 </div>
                 <p className="mt-2 text-sm font-medium">{a.name}</p>
-                <p className="text-xs text-slate-500">{a.handle}</p>
+                <p className="text-xs text-muted">{a.handle}</p>
               </div>
             ))}
           </div>
@@ -547,10 +547,10 @@ function ChannelsView() {
 function Kpi({ label, value, delta = '+12%' }) {
   return (
     <Card className="p-4">
-      <p className="text-sm text-slate-500">{label}</p>
+      <p className="text-sm text-muted">{label}</p>
       <div className="mt-2 flex items-end justify-between">
         <p className="text-2xl font-bold">{value}</p>
-        <span className="flex items-center gap-0.5 text-xs font-medium text-emerald-600"><TrendingUp className="h-3 w-3" />{delta}</span>
+        <span className="flex items-center gap-0.5 text-xs font-medium text-success"><TrendingUp className="h-3 w-3" />{delta}</span>
       </div>
     </Card>
   )
@@ -559,7 +559,7 @@ function Kpi({ label, value, delta = '+12%' }) {
 function StackBar({ title, total, parts }) {
   return (
     <div>
-      <div className="flex justify-between text-xs font-semibold uppercase text-slate-500"><span>{title}</span><span>{total.toLocaleString('es-CL')}</span></div>
+      <div className="flex justify-between text-xs font-semibold uppercase text-muted"><span>{title}</span><span>{total.toLocaleString('es-CL')}</span></div>
       <div className="mt-1.5 flex h-3 overflow-hidden rounded-full">
         {parts.map((p) => <div key={p.label} className={p.cls} style={{ width: `${p.pct}%` }} />)}
       </div>
@@ -580,15 +580,15 @@ function Heatmap() {
   }
   return (
     <div className="overflow-x-auto">
-      <div className="ml-16 flex text-[10px] text-slate-400">
+      <div className="ml-16 flex text-[10px] text-muted">
         {Array.from({ length: 24 }, (_, h) => <span key={h} className="w-5 shrink-0 text-center">{h % 3 === 0 ? `${h % 12 || 12}${h < 12 ? 'am' : 'pm'}` : ''}</span>)}
       </div>
       {DAYS.map((d, di) => (
         <div key={d} className="mt-0.5 flex items-center">
-          <span className="w-16 shrink-0 text-xs text-slate-500">{d}</span>
+          <span className="w-16 shrink-0 text-xs text-muted">{d}</span>
           {Array.from({ length: 24 }, (_, h) => {
             const v = val(di, h)
-            return <span key={h} title={`${d} ${h}:00 · ${v} mensajes`} className="mr-0.5 h-4 w-[18px] shrink-0 rounded-sm bg-blue-600" style={{ opacity: Math.max(0.07, v / 24) }} />
+            return <span key={h} title={`${d} ${h}:00 · ${v} mensajes`} className="mr-0.5 h-4 w-[18px] shrink-0 rounded-sm bg-brand-600" style={{ opacity: Math.max(0.07, v / 24) }} />
           })}
         </div>
       ))}
@@ -600,8 +600,8 @@ function Donut({ ai = 61.1 }) {
   const r = 40, c = 2 * Math.PI * r
   return (
     <svg viewBox="0 0 100 100" className="mx-auto h-40 w-40 -rotate-90">
-      <circle cx="50" cy="50" r={r} fill="none" stroke="#10b981" strokeWidth="14" />
-      <circle cx="50" cy="50" r={r} fill="none" stroke="#2563eb" strokeWidth="14" strokeDasharray={`${(ai / 100) * c} ${c}`} />
+      <circle cx="50" cy="50" r={r} fill="none" stroke="rgb(var(--success-chart))" strokeWidth="14" />
+      <circle cx="50" cy="50" r={r} fill="none" stroke="rgb(var(--brand-500))" strokeWidth="14" strokeDasharray={`${(ai / 100) * c} ${c}`} />
     </svg>
   )
 }
@@ -609,18 +609,18 @@ function Donut({ ai = 61.1 }) {
 function TicketFlow() {
   const from = { y: 90, h: 120 }
   const targets = [
-    { label: 'Asesoría muebles', n: 48, color: '#2563eb' },
-    { label: 'Asistencia humana', n: 38, color: '#f97316' },
-    { label: 'Proyecto cocina', n: 27, color: '#8b5cf6' },
-    { label: 'Cierre de venta', n: 18, color: '#10b981' },
-    { label: 'Cliente perdido', n: 12, color: '#f43f5e' },
+    { label: 'Asesoría muebles', n: 48, color: 'rgb(var(--brand-500))' },
+    { label: 'Asistencia humana', n: 38, color: 'rgb(var(--warning-chart))' },
+    { label: 'Proyecto cocina', n: 27, color: 'rgb(var(--accent))' },
+    { label: 'Cierre de venta', n: 18, color: 'rgb(var(--success-chart))' },
+    { label: 'Cliente perdido', n: 12, color: 'rgb(var(--danger))' },
   ]
   let y = 10, fy = from.y
   const total = targets.reduce((a, t) => a + t.n, 0)
   return (
     <svg viewBox="0 0 520 300" className="w-full">
-      <rect x="10" y={from.y} width="14" height={from.h} rx="3" fill="#1e40af" />
-      <text x="30" y={from.y - 6} fontSize="11" fill="#475569">Inicial ({total})</text>
+      <rect x="10" y={from.y} width="14" height={from.h} rx="3" fill="rgb(var(--brand-700))" />
+      <text x="30" y={from.y - 6} fontSize="11" fill="rgb(var(--muted))">Inicial ({total})</text>
       {targets.map((t) => {
         const h = (t.n / total) * 230, fh = (t.n / total) * from.h
         const path = `M24 ${fy} C 200 ${fy}, 200 ${y}, 380 ${y} L380 ${y + h} C 200 ${y + h}, 200 ${fy + fh}, 24 ${fy + fh} Z`
@@ -628,7 +628,7 @@ function TicketFlow() {
           <g key={t.label}>
             <path d={path} fill={t.color} opacity="0.25" />
             <rect x="380" y={y} width="12" height={h} rx="3" fill={t.color} />
-            <text x="398" y={y + h / 2 + 4} fontSize="11" fill="#334155">{t.label} · {t.n}</text>
+            <text x="398" y={y + h / 2 + 4} fontSize="11" fill="rgb(var(--ink))">{t.label} · {t.n}</text>
           </g>
         )
         y += h + 12; fy += fh
@@ -643,7 +643,7 @@ function AnalyticsView({ tickets }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase text-slate-500">Conversaciones</p>
+        <p className="text-xs font-semibold uppercase text-muted">Conversaciones</p>
         <Btn><CalendarDays className="h-4 w-4" /> Últimos 30 días <ChevronDown className="h-4 w-4" /></Btn>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -656,14 +656,14 @@ function AnalyticsView({ tickets }) {
       <div className="grid gap-4 xl:grid-cols-2">
         <Card className="grid gap-6 p-5 md:grid-cols-[160px_1fr]">
           <div>
-            <p className="text-sm text-slate-500">Cobertura de IA</p>
-            <p className="mt-4 text-4xl font-bold text-blue-600">70.5%</p>
+            <p className="text-sm text-muted">Cobertura de IA</p>
+            <p className="mt-4 text-4xl font-bold text-brand-600">70.5%</p>
             <p className="text-sm font-medium">Mensajes IA</p>
-            <p className="mt-1 text-xs text-slate-500">968 de 1.373 mensajes enviados por IA</p>
+            <p className="mt-1 text-xs text-muted">968 de 1.373 mensajes enviados por IA</p>
           </div>
           <div className="space-y-6 self-center">
-            <StackBar title="Mensajes" total={1373} parts={[{ label: 'IA', value: 968, pct: 70.5, cls: 'bg-blue-600' }, { label: 'Humano', value: 405, pct: 29.5, cls: 'bg-orange-500' }]} />
-            <StackBar title="Conversaciones" total={148} parts={[{ label: 'Solo IA', value: 60, pct: 40.5, cls: 'bg-blue-600' }, { label: 'Mixto', value: 70, pct: 47.3, cls: 'bg-emerald-500' }, { label: 'Solo humano', value: 18, pct: 12.2, cls: 'bg-orange-500' }]} />
+            <StackBar title="Mensajes" total={1373} parts={[{ label: 'IA', value: 968, pct: 70.5, cls: 'bg-brand-600' }, { label: 'Humano', value: 405, pct: 29.5, cls: 'bg-warning-chart' }]} />
+            <StackBar title="Conversaciones" total={148} parts={[{ label: 'Solo IA', value: 60, pct: 40.5, cls: 'bg-brand-600' }, { label: 'Mixto', value: 70, pct: 47.3, cls: 'bg-success-chart' }, { label: 'Solo humano', value: 18, pct: 12.2, cls: 'bg-warning-chart' }]} />
           </div>
         </Card>
         <Card className="p-5">
@@ -672,7 +672,7 @@ function AnalyticsView({ tickets }) {
         </Card>
       </div>
 
-      <p className="pt-2 text-xs font-semibold uppercase text-slate-500">Tickets</p>
+      <p className="pt-2 text-xs font-semibold uppercase text-muted">Tickets</p>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi label="Total de oportunidades" value="143" />
         <Kpi label="Tickets creados" value="143" />
@@ -685,8 +685,8 @@ function AnalyticsView({ tickets }) {
           <p className="mb-2 text-sm font-medium">Resolución humano vs IA</p>
           <Donut />
           <div className="mt-3 flex justify-center gap-4 text-sm">
-            <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-blue-600" /> IA 61,1%</span>
-            <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Humano 38,9%</span>
+            <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-brand-600" /> IA 61,1%</span>
+            <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-success-chart" /> Humano 38,9%</span>
           </div>
         </Card>
       </div>
@@ -703,8 +703,8 @@ function CrmView() {
   const rows = CUSTOMERS.filter((c) => c[0].toLowerCase().includes(query.toLowerCase()) || c[1].includes(query))
   return (
     <Card className="overflow-hidden">
-      <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 p-3">
-        <div className="mr-auto"><p className="font-semibold">Clientes</p><p className="text-sm text-slate-500">Mostrando {rows.length} de 274 clientes</p></div>
+      <div className="flex flex-wrap items-center gap-2 border-b border-line p-3">
+        <div className="mr-auto"><p className="font-semibold">Clientes</p><p className="text-sm text-muted">Mostrando {rows.length} de 274 clientes</p></div>
         <Btn><Megaphone className="h-4 w-4" /> Enviar campaña</Btn>
         <Btn><Merge className="h-4 w-4" /> Fusionar clientes</Btn>
         <Btn><Upload className="h-4 w-4" /> Importar</Btn>
@@ -713,16 +713,16 @@ function CrmView() {
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500">
+          <thead className="bg-surface text-left text-xs uppercase text-muted">
             <tr><th className="p-3">Cliente</th><th>Canal</th><th>Etiqueta</th><th>Responsable</th><th /></tr>
           </thead>
           <tbody>
             {rows.map(([name, phone, ch, tag]) => (
-              <tr key={name} className="border-t border-slate-100">
-                <td className="flex items-center gap-3 p-3"><Avatar name={name} /><div><p className="font-medium">{name}</p><p className="text-xs text-slate-500">{phone}</p></div></td>
+              <tr key={name} className="border-t border-line">
+                <td className="flex items-center gap-3 p-3"><Avatar name={name} /><div><p className="font-medium">{name}</p><p className="text-xs text-muted">{phone}</p></div></td>
                 <td><ChannelIcon channel={ch} /></td>
                 <td><span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs">{tag}</span></td>
-                <td className="text-slate-400">—</td>
+                <td className="text-muted">—</td>
                 <td className="pr-3 text-right"><Btn className="mr-1"><MessageCircle className="h-3.5 w-3.5" /> Chat</Btn><Btn><Eye className="h-3.5 w-3.5" /> Ver</Btn></td>
               </tr>
             ))}
@@ -742,13 +742,13 @@ function HomeView({ tickets, go }) {
   const pending = tickets.filter((t) => !t.ai && t.status === 'open')
   return (
     <div className="space-y-4">
-      <Card className="flex flex-wrap items-center gap-4 bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
+      <Card className="flex flex-wrap items-center gap-4 bg-gradient-to-br from-brand-500 to-accent p-6 text-white">
         <div className="mr-auto">
           <p className="text-sm opacity-80">Hola, Gaby 👋</p>
           <p className="text-2xl font-bold">Tu IA respondió el 70,5% de los mensajes este mes</p>
           <p className="mt-1 text-sm opacity-80">Eso equivale a ~32 horas de atención ahorradas.</p>
         </div>
-        <button onClick={() => go('analitica')} className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-blue-700">Ver analítica</button>
+        <button onClick={() => go('analitica')} className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-brand-700">Ver analítica</button>
       </Card>
       <div className="grid gap-3 sm:grid-cols-3">
         <Kpi label="Valor en embudo (CLP)" value={fmtCLP(pipelineValue)} />
@@ -757,11 +757,11 @@ function HomeView({ tickets, go }) {
       </div>
       <Card className="p-4">
         <p className="font-semibold">Requieren atención humana ({pending.length})</p>
-        <div className="mt-2 divide-y divide-slate-100">
+        <div className="mt-2 divide-y divide-line">
           {pending.map((t) => (
-            <button key={t.id} onClick={() => go('embudo')} className="flex w-full items-center gap-3 py-2 text-left hover:bg-slate-50">
+            <button key={t.id} onClick={() => go('embudo')} className="flex w-full items-center gap-3 py-2 text-left hover:bg-surface">
               <ChannelIcon channel={t.channel} /><span className="text-sm font-medium">{t.name}</span>
-              <span className="truncate text-xs text-slate-500">{t.msg}</span><ArrowRight className="ml-auto h-4 w-4 shrink-0 text-slate-400" />
+              <span className="truncate text-xs text-muted">{t.msg}</span><ArrowRight className="ml-auto h-4 w-4 shrink-0 text-muted" />
             </button>
           ))}
         </div>
@@ -786,25 +786,25 @@ function BillingView() {
     <div className="space-y-4">
       <div>
         <p className="text-xl font-bold">Elige tu plan</p>
-        <p className="text-sm text-slate-500">Precios mensuales en CLP + IVA. Implementación guiada disponible desde $150.000 (pago único).</p>
+        <p className="text-sm text-muted">Precios mensuales en CLP + IVA. Implementación guiada disponible desde $150.000 (pago único).</p>
       </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {PLANS.map((p) => (
-          <Card key={p.name} className={`relative flex flex-col p-5 ${p.popular ? 'border-2 border-blue-600' : ''}`}>
-            {p.popular && <span className="absolute -top-3 left-5 rounded-full bg-blue-600 px-3 py-0.5 text-xs font-semibold text-white">Más popular</span>}
+          <Card key={p.name} className={`relative flex flex-col p-5 ${p.popular ? 'border-2 border-brand-600' : ''}`}>
+            {p.popular && <span className="absolute -top-3 left-5 rounded-full bg-brand-600 px-3 py-0.5 text-xs font-semibold text-white">Más popular</span>}
             <p className="font-semibold">{p.name}</p>
-            <p className="text-xs text-slate-500">{p.desc}</p>
+            <p className="text-xs text-muted">{p.desc}</p>
             <p className="mt-4 text-3xl font-bold">{p.price ? fmtCLP(p.price) : 'A medida'}</p>
-            {p.price && <p className="text-xs text-slate-500">/mes</p>}
+            {p.price && <p className="text-xs text-muted">/mes</p>}
             <ul className="mt-4 flex-1 space-y-2 text-sm">
-              {p.features.map((f) => <li key={f} className="flex gap-2"><Check className="h-4 w-4 shrink-0 text-emerald-500" />{f}</li>)}
+              {p.features.map((f) => <li key={f} className="flex gap-2"><Check className="h-4 w-4 shrink-0 text-success" />{f}</li>)}
             </ul>
             <Btn primary={p.popular} className="mt-5 justify-center">{p.price ? 'Elegir plan' : 'Hablar con ventas'}</Btn>
           </Card>
         ))}
       </div>
       <Card className="flex items-center gap-3 p-4 text-sm">
-        <Zap className="h-5 w-5 text-amber-500" /> Paquetes extra: +1.000 conversaciones IA por $29.990 · usuarios adicionales $9.990/mes.
+        <Zap className="h-5 w-5 text-warning" /> Paquetes extra: +1.000 conversaciones IA por $29.990 · usuarios adicionales $9.990/mes.
       </Card>
     </div>
   )
@@ -815,10 +815,10 @@ function ComingSoon({ module }) {
   const Icon = m.icon
   return (
     <Card className="mx-auto mt-10 max-w-lg p-10 text-center">
-      <Icon className="mx-auto h-10 w-10 text-blue-600" />
+      <Icon className="mx-auto h-10 w-10 text-brand-600" />
       <p className="mt-3 text-lg font-semibold">{m.label}</p>
-      <p className="mt-1 text-sm text-slate-500">Este módulo está en el roadmap. Aquí vivirán las funciones de {m.label.toLowerCase()} conectadas al backend.</p>
-      <span className="mt-4 inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-600"><Sparkles className="h-3 w-3" /> Próximamente</span>
+      <p className="mt-1 text-sm text-muted">Este módulo está en el roadmap. Aquí vivirán las funciones de {m.label.toLowerCase()} conectadas al backend.</p>
+      <span className="mt-4 inline-flex items-center gap-1 rounded-full bg-brand-50 px-3 py-1 text-xs text-brand-600"><Sparkles className="h-3 w-3" /> Próximamente</span>
     </Card>
   )
 }
@@ -852,30 +852,30 @@ export default function App() {
   }, [module, tickets])
 
   const RailButton = ({ id, label, icon: Icon }) => (
-    <button onClick={() => setModule(id)} className={`flex w-full flex-col items-center gap-0.5 rounded-lg py-1.5 text-[10px] transition ${module === id ? 'bg-blue-50 text-blue-600' : 'text-slate-500 hover:bg-slate-100'}`}>
+    <button onClick={() => setModule(id)} className={`flex w-full flex-col items-center gap-0.5 rounded-lg py-1.5 text-[10px] transition ${module === id ? 'bg-brand-50 text-brand-600' : 'text-muted hover:bg-slate-100'}`}>
       <Icon className="h-5 w-5" />{label}
     </button>
   )
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
-      <aside className="scroll-thin flex w-20 shrink-0 flex-col items-center gap-1 overflow-y-auto border-r border-slate-200 bg-white px-2 py-3">
-        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-lg font-bold text-white">M</div>
+    <div className="flex h-screen overflow-hidden bg-surface">
+      <aside className="scroll-thin flex w-20 shrink-0 flex-col items-center gap-1 overflow-y-auto border-r border-line bg-white px-2 py-3">
+        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-accent text-lg font-bold text-white shadow-lg shadow-brand-500/30">M</div>
         {MODULES.map((m) => <RailButton key={m.id} {...m} />)}
         <div className="mt-auto w-full pt-2"><RailButton id="ajustes" label="Ajustes" icon={Settings} /></div>
       </aside>
 
       {sub && (
-        <aside className="hidden w-56 shrink-0 border-r border-slate-200 bg-white p-3 md:block">
+        <aside className="hidden w-56 shrink-0 border-r border-line bg-white p-3 md:block">
           <p className="px-2 text-xs font-bold uppercase tracking-wide text-slate-700">{sub.title}</p>
           {sub.groups.map(([group, items]) => (
             <div key={group} className="mt-4">
-              {group && <p className="px-2 text-[11px] font-semibold uppercase text-slate-400">{group}</p>}
+              {group && <p className="px-2 text-[11px] font-semibold uppercase text-muted">{group}</p>}
               {items.map(([label, Icon], i) => {
                 const active = (subItem[module] ?? sub.groups[0][1][0][0]) === label
                 return (
                   <button key={label + i} onClick={() => setSubItem((s) => ({ ...s, [module]: label }))}
-                    className={`mt-1 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm ${active ? 'bg-blue-50 font-medium text-blue-600' : 'text-slate-600 hover:bg-slate-50'}`}>
+                    className={`mt-1 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm ${active ? 'bg-brand-50 font-medium text-brand-600' : 'text-slate-600 hover:bg-surface'}`}>
                     <Icon className="h-4 w-4" />{label}
                   </button>
                 )
@@ -886,8 +886,8 @@ export default function App() {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b border-slate-200 bg-white px-4">
-          <nav className="flex items-center gap-1 text-sm text-slate-500">
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b border-line bg-white px-4">
+          <nav className="flex items-center gap-1 text-sm text-muted">
             {crumbs.map((c, i) => (
               <span key={c} className="flex items-center gap-1">
                 {i > 0 && <span className="text-slate-300">›</span>}
@@ -896,13 +896,13 @@ export default function App() {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-1">
-            <span className="mr-2 hidden text-sm font-semibold sm:block">momo<span className="text-blue-600">.ai</span></span>
+            <span className="mr-2 hidden text-sm font-semibold sm:block">momo<span className="text-brand-600">.ai</span></span>
             {[MessageCircle, ClipboardList, Bell].map((I, i) => (
-              <button key={i} className="relative rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50">
-                <I className="h-4 w-4" />{I === Bell && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-rose-500" />}
+              <button key={i} className="relative rounded-lg border border-line p-1.5 text-muted hover:bg-surface">
+                <I className="h-4 w-4" />{I === Bell && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-danger" />}
               </button>
             ))}
-            <span className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white">GP</span>
+            <span className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 text-xs font-semibold text-white">GP</span>
           </div>
         </header>
         <main className="scroll-thin min-h-0 flex-1 overflow-auto p-4">{view}</main>
