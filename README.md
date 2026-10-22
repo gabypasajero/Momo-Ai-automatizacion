@@ -1,26 +1,40 @@
-# Momo AI — CRM omnicanal con IA para vender por redes sociales
+# Momo AI
 
-Frontend navegable (React + Vite + Tailwind + lucide-react) del SaaS de automatización de ventas por WhatsApp, Instagram, Messenger y TikTok.
+CRM omnicanal con IA para vender por **Facebook (Messenger y Marketplace), WhatsApp, Instagram y TikTok**. Pensado para pymes, medianas y grandes empresas en Chile y Latinoamérica.
 
-## Vistas incluidas
-- **Inicio**: resumen del día y tickets que requieren a un humano.
-- **Embudo**: Kanban con arrastrar y soltar, filtros por canal, buscador, estados (abiertos/todos/cerrados), totales en CLP y vista de lista.
-- **Chat**: bandeja omnicanal de 3 columnas con filtros, respuesta manual y pausar/activar IA por conversación.
-- **Asistente**: gestor de asistentes de IA (crear, buscar).
-- **Canales**: cuentas conectadas y asociación de canales a embudos.
-- **Analítica**: KPIs, cobertura de IA, heatmap por horario, ruta del ticket (Sankey) y dona IA vs humano.
-- **CRM**: tabla de clientes.
-- **Ajustes → Plan y facturación**: planes en CLP para vender la plataforma.
+> Estado: la interfaz está completa y navegable, con datos de prueba. El backend (Supabase, webhooks de Meta y agente de IA) es la siguiente etapa. El piloto se hará con la venta por Facebook de Rachel: ver [docs/piloto-facebook.md](docs/piloto-facebook.md).
 
- (mock). Aún no hay backend: el siguiente paso es Supabase (base de datos, autenticación y separación por empresa) más los webhooks de Meta y el agente de IA.
+## Módulos
+| Ruta | Módulo |
+|---|---|
+| `/inicio` | Resumen del día y tickets que necesitan a una persona |
+| `/embudo` | Kanban de ventas con arrastrar y soltar, filtros por canal y totales en CLP |
+| `/chat` | Bandeja omnicanal con pausa/activación de la IA por conversación |
+| `/asistentes` | Asistentes de IA |
+| `/crm` | Clientes |
+| `/canales` | Cuentas conectadas y asociación de canales a embudos |
+| `/analitica` | KPIs, cobertura de IA, mapa de calor, ruta del ticket, IA vs humano |
+| `/ajustes/facturacion` | Planes en CLP |
 
 ## Desarrollo
 ```bash
 npm install
-npm run dev
+npm run dev        # http://localhost:3000
+npm run lint
+npm run typecheck
+npm run build
 ```
 
-## Desplegar en Vercel
-Importa el repositorio; Vercel detecta Vite automáticamente (build `npm run build`, salida `dist`).
+Variables de entorno: copia `.env.example` como `.env.local` (todavía no son necesarias con los datos de prueba).
 
-El prototipo estático anterior quedó en `legacy/`.
+## Despliegue
+Importa el repositorio en Vercel; detecta Next.js automáticamente.
+
+## Documentación
+- [Arquitectura y estructura de carpetas](docs/arquitectura.md)
+- [Piloto con Facebook / Marketplace](docs/piloto-facebook.md)
+
+## Marca
+La paleta DTO (morado `#7565e8`, azul `#4f8df7`, tinta `#1d2433`) vive como variables CSS en `src/app/globals.css` y como colores semánticos en `tailwind.config.ts` (`brand`, `accent`, `ink`, `muted`, `line`, `surface`, `success`, `danger`, `warning`). Para dar marca blanca a una empresa basta con cambiar esas variables.
+
+El prototipo estático original quedó en `legacy/`.

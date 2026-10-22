@@ -1,8 +1,9 @@
-/** @type {import('tailwindcss').Config} */
-const v = (name) => `rgb(var(--${name}) / <alpha-value>)`
+import type { Config } from 'tailwindcss'
 
-export default {
-  content: ['./index.html', './src/**/*.{js,jsx}'],
+const v = (name: string) => `rgb(var(--${name}) / <alpha-value>)`
+
+const config: Config = {
+  content: ['./src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
@@ -26,3 +27,4 @@ export default {
   },
   plugins: [],
 }
+export default config
