@@ -16,6 +16,8 @@
   --brand-800: 110 32 64;
   --brand-900: 79 23 46;
   --accent: 142 108 201;     /* lila del banner "Diseña tu mueble" */
+  --accent-soft: 241 236 250; /* #F1ECFA */
+  --accent-strong: 91 63 149; /* #5B3F95 · texto y botones lila (8:1) */
   --ink: 58 42 51;           /* #3A2A33 */
   --muted: 112 86 99;        /* #705663 · 6,4:1 sobre blanco */
   --line: 242 220 225;       /* #F2DCE1 */
@@ -31,6 +33,9 @@
 }
 
 body { @apply bg-surface text-ink antialiased; }
+html { -webkit-tap-highlight-color: transparent; }
+::selection { background: rgb(var(--brand-100)); }
+dialog::backdrop { background: rgb(58 42 51 / 0.45); backdrop-filter: blur(2px); }
 h1, h2, h3 { font-family: var(--font-display), var(--font-sans), sans-serif; }
 .scroll-thin::-webkit-scrollbar { height: 8px; width: 8px; }
 .scroll-thin::-webkit-scrollbar-thumb { @apply bg-line rounded-full; }

@@ -4,75 +4,77 @@
 
 | Capa | Tecnología | Motivo |
 |---|---|---|
-| App web y API | **Next.js 15** (App Router) + **TypeScript** | La interfaz y el backend (webhooks, IA) en un solo proyecto, desplegado en Vercel |
-| Estilos | **Tailwind CSS** con variables de marca | La paleta DTO es centralizada y permite marca blanca por empresa |
-| Base de datos y autenticación | **Supabase** (Postgres + Auth + Realtime) | Separación por empresa con políticas de acceso por fila (RLS) y bandeja en tiempo real |
-| Canales | Meta Messenger Platform → luego WhatsApp Cloud API, Instagram y TikTok | El piloto empieza con Facebook/Marketplace |
-| IA | API de Claude con herramientas (function calling) | Responder, mover tickets y derivar a una persona |
-| Cobros | Stripe / Mercado Pago | Planes en CLP (`src/config/plans.ts`) |
+| App web y API | **Next.js 15** (App Router, server actions) + **TypeScript** | Interfaz y backend en un solo proyecto, desplegado en Vercel |
+| Estilos | **Tailwind CSS** con variables de marca | Identidad DTO centralizada; permite marca blanca por empresa |
+| Base de datos y autenticación | **Supabase** (Postgres + Auth + Edge Functions) | Separación por empresa con seguridad por fila (RLS) |
+| Cuentas y equipos | Edge Function **`momo-usuarios`** (service_role) | Crear cuentas con contraseña temporal y aplicar las reglas de roles sin exponer la clave secreta |
+| IA | API de Claude (`claude-opus-5-5`) con herramientas | Momo vendedor (sugiere respuestas) y Momo interno (ayuda al equipo) |
+| Canales | Marketplace en modo copiloto (registro manual + extensión de Chrome); Messenger/WhatsApp/Instagram por API de Meta (próximo) | Facebook no permite leer los chats de Marketplace de un perfil personal |
+
+## Concepto del panel (propio, con identidad DTO)
+
+Cinco secciones con nombres simples, y la venta vive dentro de la conversación (sin Kanban):
+
+| Sección | Ruta | Qué hace |
+|---|---|---|
+| Hoy | `/hoy` | Frase de Momo con lo que pasó, quién te espera, ventas de la semana, duda pendiente de Momo |
+| Conversaciones | `/conversaciones` | Bandeja con filtros (Te esperan, Momo atiende, Vendidas, Todas, Archivadas), chat, sugerencia de Momo y panel **Esta venta** (Pregunta → Cotizado → Pagado → Despachado, producto, despacho, Área de Diseño, venta perdida) |
+| Clientes | `/clientes`, `/clientes/[id]` | Lista, ficha con compras y conversaciones, edición, exportación CSV (`/clientes/exportar`) |
+| Lo que Momo sabe | `/conocimiento?t=` | Políticas, productos, dudas y personalidad (con "Probar a Momo") |
+| Resultados | `/resultados?p=7|30|90` | Vendido, conversión, % respondido por Momo, ventas por día, canales, motivos de pérdida, costo de IA |
+| Ajustes | `/ajustes?t=` | Mi perfil y contraseña, Empresa (contactos de derivación), Equipo, Plan (solicitudes) y Canales |
+
+En celular hay una barra inferior (Hoy, Chats, Clientes, Más) y Momo aparece como botón flotante.
+
+**Área de administración de la plataforma** (`/admin`): diseño propio, solo para `momo.platform_admins` y con contraseña propia del panel (30 minutos, bloqueo tras 5 intentos). Empresas (crear, editar plan/estado, equipo, restablecer contraseñas), Solicitudes, Consumo de IA y Seguridad.
 
 ## Estructura de carpetas
 
 ```
 src/
-├── app/                      Rutas (una carpeta = una URL)
-│   ├── (app)/                Panel con barra lateral (requiere sesión)
-│   │   ├── inicio/ embudo/ chat/ asistentes/ crm/ canales/ analitica/
-│   │   ├── ajustes/facturacion/
-│   │   ├── [module]/         Módulos del roadmap (Servicio, Ecommerce…)
-│   │   ├── layout.tsx        Barra lateral + submenú + encabezado
-│   │   ├── loading.tsx       Esqueleto de carga
-│   │   └── error.tsx         Pantalla de error con reintento
-│   ├── api/                  (próximo) webhooks de Meta, IA, cobros
-│   ├── layout.tsx            HTML raíz, fuente y metadatos
+├── app/
+│   ├── (app)/                Panel de cada empresa (requiere sesión y empresa)
+│   │   ├── hoy/ conversaciones/ clientes/ conocimiento/ resultados/ ajustes/ buscar/ mas/
+│   │   ├── layout.tsx        Menú lateral, barra inferior, aviso de contraseña temporal, Momo
+│   │   └── loading.tsx · error.tsx
+│   ├── admin/                Área exclusiva del dueño de la plataforma (layout propio)
+│   ├── api/asistente/        Momo interno (chat de ayuda)
+│   ├── login/ recuperar/ restablecer/ auth/callback/
 │   └── globals.css           Variables de marca DTO
 ├── components/
-│   ├── ui/                   Piezas base reutilizables (Button, Card, Badge…)
-│   └── layout/               Sidebar, SubNav, Topbar, ComingSoon
-├── features/                 Un módulo de negocio por carpeta
-│   ├── pipeline/             Embudo Kanban
-│   ├── chat/                 Bandeja omnicanal
-│   ├── analytics/            Dashboard y gráficos
-│   ├── assistants/ channels/ crm/ billing/ home/
-├── config/                   Navegación, canales y planes (fuente única)
+│   ├── ui/                   Button, Card, Badge, Modal, ActionForm, ConfirmAction, campos, Tabs…
+│   ├── layout/               Sidebar, BottomNav, OrgSwitcher
+│   └── brand/                Mascota Momo (SVG)
+├── features/                 Un módulo por carpeta: queries.ts (lectura) + actions.ts (server actions) + componentes
+│   ├── conversaciones/ hoy/ clientes/ conocimiento/ resultados/ ajustes/ admin/ auth/ assistant/
+├── config/                   plans.ts, sales.ts (canales, pasos, roles), navigation.ts
 └── lib/
-    ├── data/                 Capa de datos
-    │   ├── types.ts          Modelo de dominio
-    │   ├── repository.ts     Contrato que usa la UI
-    │   ├── mock.ts           Implementación de prueba
-    │   └── index.ts          getRepository(): aquí se conecta Supabase
-    ├── format.ts             Formato CLP, números y hora
-    └── cn.ts                 Utilidad para combinar clases
+    ├── session.ts            getSession(): usuario, empresa activa (cookie) y rol
+    ├── actions.ts            Utilidades de server actions (roles, errores en español, lectura de formularios)
+    ├── accounts.ts           Llamadas a la función momo-usuarios
+    ├── ai/                   runtime (consumo y costos), catálogo, Momo vendedor, Momo interno
+    └── supabase/             Clientes de servidor y middleware
+supabase/
+├── migrations/               Esquema completo (aplicado en el proyecto)
+├── functions/momo-usuarios/  Edge Function de cuentas y equipos
+└── manual/                   SQL opcional para ejecutar a mano
+legacy/panel-v1/              Primer panel (tipo Vambe), archivado
+extension/                    Extensión de Chrome (también en public/momo-extension.zip)
 ```
 
 ## Principios
 
-1. **Las pantallas no conocen la base de datos.** Las páginas (componentes de servidor) piden datos a `getRepository()` y se los pasan a los componentes de `features/`. Cambiar los datos de prueba por Supabase es implementar `Repository` una vez.
-2. **Una fuente de verdad por concepto.** Planes, canales y navegación viven en `src/config/`; la página de precios, los límites del backend y el menú leen del mismo archivo.
-3. **Marca por variables.** Los componentes usan nombres según su función (`brand`, `success`, `danger`…), no colores fijos. Cada empresa podrá tener su paleta cambiando las variables CSS.
-4. **Separación por empresa desde el día 1.** Toda tabla lleva `organization_id` y una política RLS; ninguna consulta puede cruzar datos entre empresas.
-5. **Accesibilidad.** Botones con `aria-label`, estados con `aria-pressed`/`aria-current`, y el foco visible.
+1. **Cada botón hace algo real.** Las acciones son server actions que validan el rol, escriben en Supabase y refrescan la pantalla. Lo que todavía no existe (conexión con Meta) se ofrece como *solicitud* que llega al panel de administración, nunca como botón muerto.
+2. **Seguridad en la base de datos.** Toda tabla lleva `organization_id` con RLS; triggers impiden apuntar a datos de otra empresa; el plan y el estado de una empresa y el equipo no se pueden editar desde la app (permisos por columna): solo por funciones con reglas.
+3. **Una fuente de verdad.** Planes, canales, pasos de venta y roles viven en `src/config/`.
+4. **Marca por variables.** Los componentes usan nombres según su función (`brand`, `accent`, `success`…).
+5. **Accesible y para celular.** Etiquetas asociadas, foco visible, objetivos táctiles de 44 px, sin desborde horizontal, nada se abre en ventanas nuevas.
 
-## Base de datos (lista)
+## Base de datos
 
-Esquema `momo` en el proyecto Supabase "DTO detoditooutlet" (`supabase/migrations/`). 15 tablas, todas con seguridad por fila (RLS):
+Esquema `momo` (`supabase/migrations/`):
 
-- **Empresas y equipo:** `organizations`, `members` (roles owner/admin/agent/viewer), función `momo.has_role()`.
-- **Canales:** `channel_accounts` (el token va a Supabase Vault, nunca en texto plano).
-- **Clientes:** `contacts`, `contact_identities` (una persona puede escribir por varios canales).
-- **Ventas:** `pipelines`, `pipeline_stages` (con `key` estable para la IA), `tickets`.
-- **Mensajería:** `conversations` (incluye `last_inbound_at` para la ventana de 24 h de Meta), `messages` (con `external_id` único para no duplicar webhooks).
-- **IA:** `products` (búsqueda de texto en español), `ai_assistants`, `knowledge_entries`.
-- **Operación:** `usage_events` (límites por plan; solo el backend escribe), `webhook_events` (registro crudo de Meta; solo el backend).
-
-Lectura para cualquier miembro, escritura para owner/admin/agent y borrado solo para owner/admin. Detalle del catálogo en [catalogo.md](catalogo.md).
-
-> Para que la app lea el esquema `momo` con supabase-js hay que agregarlo en **Supabase → Project Settings → Data API → Exposed schemas**.
-
-## Próximo: backend
-
-1. ~~Esquema en Supabase~~ ✔
-2. Autenticación (Supabase Auth) y protección de las rutas de `(app)`.
-3. `POST /api/webhooks/meta`: verificación de firma, guardado del mensaje y encolado.
-4. Agente de IA con herramientas: `reply`, `move_ticket`, `handoff_to_human`, `search_catalog`.
-5. `SupabaseRepository` que reemplaza a `mockRepository`.
+- **Empresas y equipo:** `organizations` (plan, estado, contactos de derivación), `members` (owner/admin/agent/viewer), `platform_admins`.
+- **Ventas:** `contacts`, `conversations` (canal, resumen del último mensaje), `messages`, `tickets` (paso, Área de Diseño, producto, despacho, notas, motivo de pérdida).
+- **Conocimiento:** `products`, `knowledge_entries`, `knowledge_gaps` (dudas que Momo no supo responder), `ai_assistants` (instrucciones).
+- **Operación:** `requests` (plan, canal, soporte), `ai_usage` (tokens y costo por respuesta), `usage_events`, `webhook_events`.

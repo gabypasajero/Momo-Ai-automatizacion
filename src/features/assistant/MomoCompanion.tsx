@@ -14,18 +14,19 @@ import { AssistantPanel } from './AssistantPanel'
 
 const W = 64
 const H = 94
-const HEADER = 56
+/** Altura desde la que se cuelga (borde superior de la ventana). */
+const HANG_TOP = -6
 const STORAGE_KEY = 'momo-oculto'
 
 type Pose = 'idle' | 'walk' | 'hang' | 'wave'
 
 const TIPS: Record<string, string[]> = {
-  '/inicio': ['¡Hola! Aquí ves lo que espera a una persona hoy.', '¿Quieres que te explique alguna pantalla? Tócame.'],
-  '/embudo': ['Puedes arrastrar los tickets entre columnas.', 'Con ✓ marcas una venta ganada. ¡A celebrar!'],
-  '/chat': ['Si pausas la IA en un chat, respondes tú.', 'Cada respuesta firmada «Momo · IA» la escribí yo.'],
-  '/asistentes/conocimiento': ['¿Agregamos una política nueva? Dime y la guardo.', 'Busca un producto aquí para ver qué sé de él.'],
-  '/crm': ['Aquí quedan todos tus clientes de todos los canales.'],
-  '/analitica': ['¿Quieres que te explique alguna métrica?'],
+  '/hoy': ['Aquí ves a quién responder primero.', 'Si no sé algo, te lo dejo abajo para que me enseñes.'],
+  '/conversaciones': ['Pega lo que te escribió el cliente y pídeme una respuesta.', 'Marca los pasos de la venta a la derecha: Cotizado, Pagado, Despachado.'],
+  '/clientes': ['Toca un cliente para ver todo lo que te ha comprado.', 'Puedes exportar tus clientes a Excel.'],
+  '/conocimiento': ['Mientras más políticas me enseñes, mejor respondo.', 'Prueba cómo respondería en la pestaña Personalidad.'],
+  '/resultados': ['¿Quieres que te explique alguna cifra? Tócame.'],
+  '/ajustes': ['Aquí sumas a tu equipo y cambias tu contraseña.'],
 }
 const GENERIC_TIPS = ['¿Te ayudo con algo? Tócame.', 'Puedo buscar productos o agregar conocimiento por ti.']
 
@@ -43,6 +44,7 @@ export function MomoCompanion() {
   const [hidden, setHidden] = useState(false)
   const [open, setOpen] = useState(false)
   const [still, setStill] = useState(false) // celular o "reducir movimiento"
+  const [narrow, setNarrow] = useState(false) // celular: queda sobre la barra inferior
   const [pose, setPose] = useState<Pose>('idle')
   const [x, setX] = useState(0)
   const [facing, setFacing] = useState<1 | -1>(1)
@@ -52,6 +54,7 @@ export function MomoCompanion() {
   const svgRef = useRef<HTMLDivElement>(null)
   const xRef = useRef(0)
   const poseRef = useRef<Pose>('idle')
+  const dodgeRef = useRef(0)
   useEffect(() => { poseRef.current = pose }, [pose])
 
   // Inicio: posición, preferencia de ocultar y modo quieto
@@ -59,6 +62,7 @@ export function MomoCompanion() {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const narrow = window.innerWidth < 768
     setStill(reduce || narrow)
+    setNarrow(narrow)
     setHidden(readHidden())
     const start = window.innerWidth - W - 28
     xRef.current = start
@@ -76,8 +80,21 @@ export function MomoCompanion() {
       const dx = e.clientX - (r.left + r.width / 2)
       const dy = e.clientY - (r.top + r.height * 0.3)
       const len = Math.hypot(dx, dy) || 1
-      // Colgado sobre la barra superior: si el cursor se acerca, se suelta y baja para no tapar botones.
+      // Colgado arriba: si el cursor se acerca, se suelta y baja para no tapar botones.
       if (poseRef.current === 'hang' && len < 110) setPose('idle')
+      // Abajo: si el cursor se acerca, Momo se hace a un lado para no tapar lo que vas a tocar.
+      else if (poseRef.current !== 'hang' && len < 120 && Date.now() - dodgeRef.current > 900) {
+        dodgeRef.current = Date.now()
+        const maxX = window.innerWidth - W - 16
+        const away = dx > 0 ? xRef.current - 180 : xRef.current + 180
+        const target = Math.min(maxX, Math.max(272, away < 272 || away > maxX ? (dx > 0 ? xRef.current + 180 : xRef.current - 180) : away))
+        setFacing(target < xRef.current ? -1 : 1)
+        setPose('walk')
+        setMoveMs(350)
+        xRef.current = target
+        setX(target)
+        setTimeout(() => setPose((p) => (p === 'walk' ? 'idle' : p)), 420)
+      }
       const k = Math.min(1, len / 200) * 1.5
       el.style.setProperty('--momo-px', `${((dx / len) * k * facing).toFixed(2)}px`)
       el.style.setProperty('--momo-py', `${((dy / len) * k).toFixed(2)}px`)
@@ -100,7 +117,7 @@ export function MomoCompanion() {
   // Comportamiento: caminar, colgarse, saludar
   const nextAction = useCallback(() => {
     const maxX = window.innerWidth - W - 16
-    const minX = 96 // deja libre el menú lateral
+    const minX = 272 // deja libre el menú lateral
     const roll = Math.random()
     if (roll < 0.55) {
       const target = rand(minX, maxX)
@@ -137,7 +154,7 @@ export function MomoCompanion() {
   // Consejos según la pantalla
   useEffect(() => {
     if (!mounted || hidden || open) { setBubble(null); return }
-    const tips = TIPS[pathname] ?? GENERIC_TIPS
+    const tips = TIPS['/' + (pathname.split('/')[1] ?? '')] ?? GENERIC_TIPS
     let i = 0
     let t: ReturnType<typeof setTimeout>
     const show = (delay: number) => {
@@ -157,9 +174,22 @@ export function MomoCompanion() {
   if (hidden) {
     return (
       <button type="button" onClick={() => toggleHidden(false)} aria-label="Mostrar a Momo"
-        className="fixed bottom-3 right-3 z-40 flex items-center gap-1 rounded-full border border-line bg-white py-1 pl-1 pr-3 text-xs text-muted shadow-card hover:text-ink">
+        className="fixed bottom-[92px] right-3 z-40 flex min-h-10 items-center gap-1 rounded-full border border-line bg-white py-1 pl-1 pr-3 text-xs font-bold text-muted shadow-card hover:text-ink md:bottom-3">
         <Mascot className="h-6 w-6" title="" /> Momo
       </button>
+    )
+  }
+
+  // Celular: botón redondo con la cara de Momo sobre la barra inferior (no tapa el contenido).
+  if (narrow) {
+    return (
+      <>
+        <button type="button" onClick={() => setOpen((o) => !o)} aria-label="Abrir el asistente Momo" aria-expanded={open}
+          className={cn('fixed bottom-[88px] right-3 z-40 flex h-14 w-14 items-center justify-center rounded-full border-2 border-white bg-brand-100 shadow-pop', blink && 'momo-blink')}>
+          <Mascot className="h-11 w-11" title="" />
+        </button>
+        {open && <AssistantPanel onClose={() => setOpen(false)} onHideMascot={() => toggleHidden(true)} />}
+      </>
     )
   }
 
@@ -168,7 +198,7 @@ export function MomoCompanion() {
   const style = still
     ? { right: 12, bottom: 12 }
     : hanging
-      ? { left, top: HEADER - 14, transition: 'top 400ms ease' }
+      ? { left, top: HANG_TOP, transition: 'top 400ms ease' }
       : { left, top: `calc(100vh - ${H + 10}px)`, transition: `left ${moveMs}ms linear, top 400ms ease` }
 
   return (

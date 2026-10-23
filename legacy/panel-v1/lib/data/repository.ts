@@ -1,5 +1,5 @@
 import type {
-  AnalyticsSummary, Assistant, ChannelAccount, Contact, Conversation, KnowledgeEntry, Organization, Pipeline, Product, Ticket,
+  AiUsage, AnalyticsSummary, Assistant, ChannelAccount, Contact, Conversation, KnowledgeEntry, Organization, Pipeline, Product, Ticket,
 } from './types'
 
 /**
@@ -20,4 +20,6 @@ export interface Repository {
   getKnowledge(): Promise<KnowledgeEntry[]>
   /** Agrega una política o dato del negocio al conocimiento de la IA de la empresa activa. */
   addKnowledgeEntry(entry: { title: string; content: string }): Promise<KnowledgeEntry>
+  /** Registra el consumo de IA de la empresa activa (costos y márgenes del panel de administración). */
+  recordAiUsage(usage: AiUsage): Promise<void>
 }

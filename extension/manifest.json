@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Momo AI · Embudo",
   "short_name": "Momo",
-  "version": "1.0.0",
-  "description": "Tu embudo de ventas de Momo siempre a mano: abre directo los chats que la IA va respondiendo.",
+  "version": "1.1.0",
+  "description": "Tus conversaciones de Momo siempre a mano: ve quién te espera y abre cada chat en Momo con un clic.",
   "icons": {
     "16": "icons/16.png",
     "32": "icons/32.png",

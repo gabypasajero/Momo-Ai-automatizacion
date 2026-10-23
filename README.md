@@ -1,47 +1,43 @@
 # Momo AI
 
-CRM omnicanal con IA para vender por **Facebook (Messenger y Marketplace), WhatsApp, Instagram y TikTok**. Pensado para pymes, medianas y grandes empresas en Chile y Latinoamérica.
+Ventas por chat con IA para pymes: Momo sugiere cada respuesta con el catálogo y las políticas reales de la empresa,
+y cada conversación lleva su venta al lado, de la pregunta al despacho. Piloto: De Todito Outlet (Marketplace de Facebook).
 
-> Estado: la interfaz está completa y navegable, con datos de prueba. El backend (Supabase, webhooks de Meta y agente de IA) es la siguiente etapa. El piloto se hará con la venta por Facebook de Rachel: ver [docs/piloto-facebook.md](docs/piloto-facebook.md).
-
-## Módulos
-| Ruta | Módulo |
+## Secciones
+| Ruta | Sección |
 |---|---|
-| `/inicio` | Resumen del día y tickets que necesitan a una persona |
-| `/embudo` | Kanban de ventas con arrastrar y soltar, filtros por canal y totales en CLP |
-| `/chat` | Bandeja omnicanal con pausa/activación de la IA por conversación |
-| `/asistentes` | Asistentes de IA |
-| `/asistentes/conocimiento` | Políticas del negocio y catálogo con búsqueda en español |
-| `/login` | Ingreso (solo en modo real) |
-| `/crm` | Clientes |
-| `/canales` | Cuentas conectadas y asociación de canales a embudos |
-| `/analitica` | KPIs, cobertura de IA, mapa de calor, ruta del ticket, IA vs humano |
-| `/ajustes/facturacion` | Planes en CLP |
+| `/hoy` | Lo que pasó, quién te espera, ventas de la semana y lo que Momo aprendió |
+| `/conversaciones` | Chats con la venta al lado (Pregunta → Cotizado → Pagado → Despachado), sugerencias de Momo y Área de Diseño |
+| `/clientes` | Clientes con su historial de compras; exportación a Excel |
+| `/conocimiento` | Políticas, productos, dudas por enseñar y personalidad de Momo (con prueba) |
+| `/resultados` | Ventas, conversión, canales y costo de IA |
+| `/ajustes` | Perfil y contraseña, empresa, equipo, plan y canales |
+| `/admin` | Área exclusiva del dueño de la plataforma (contraseña propia) |
+| `/login` · `/recuperar` · `/restablecer` | Acceso y recuperación de contraseña |
 
 ## Desarrollo
 ```bash
 npm install
-npm run dev        # http://localhost:3000
-npm run lint
-npm run typecheck
-npm run build
+cp .env.example .env.local   # URL y clave publicable de Supabase
+npm run dev                  # http://localhost:3000
+npm run lint && npm run typecheck && npm run build
 ```
 
-Sin variables de entorno la app corre en **modo demo** (datos de prueba, sin login). Para conectarla a Supabase sigue [docs/puesta-en-marcha.md](docs/puesta-en-marcha.md).
+Puesta en marcha (Supabase, IA, cuentas): [docs/puesta-en-marcha.md](docs/puesta-en-marcha.md).
 
 ## Despliegue
-Importa el repositorio en Vercel; detecta Next.js automáticamente.
+Vercel (proyecto `momo-ai-automatizacion`): cada push a `main` publica producción; las demás ramas generan vistas previas.
 
 ## Extensión de Chrome
-Burbuja con el embudo en la esquina superior izquierda de cualquier página y acceso directo a cada chat: ver [extension/README.md](extension/README.md).
+Burbuja con tus conversaciones y quién te espera en cualquier página (por ejemplo Marketplace). Se descarga desde Ajustes › Canales: ver [extension/README.md](extension/README.md).
 
 ## Documentación
 - [Arquitectura y estructura de carpetas](docs/arquitectura.md)
 - [Piloto con Facebook / Marketplace](docs/piloto-facebook.md)
 - [Catálogo y conocimiento de la IA](docs/catalogo.md)
-- Base de datos: `supabase/migrations/` (esquema) y `supabase/seed/` (datos del piloto)
+- Base de datos: `supabase/migrations/`, función `supabase/functions/momo-usuarios/` y SQL opcional en `supabase/manual/`
 
 ## Marca
-La paleta de detoditooutlet.cl (rosa `#A8325E`, fondo `#FFF8F6`, tinta `#3A2A33`, verde `#1E7A4C`; tipografías Nunito y Quicksand) vive como variables CSS en `src/app/globals.css` y como colores semánticos en `tailwind.config.ts` (`brand`, `accent`, `ink`, `muted`, `line`, `surface`, `success`, `danger`, `warning`). Para dar marca blanca a una empresa basta con cambiar esas variables.
+Identidad de detoditooutlet.cl (rosa `#A8325E`, fondo `#FFF8F6`, tinta `#3A2A33`, verde `#1E7A4C`, lila `#5B3F95`; tipografías Nunito y Quicksand) como variables CSS en `src/app/globals.css` y colores semánticos en `tailwind.config.ts`. Para marca blanca basta con cambiar esas variables.
 
-El prototipo estático original quedó en `legacy/`.
+El primer panel (inspirado en Vambe) quedó archivado en `legacy/panel-v1/`; el prototipo estático original, en `legacy/`.

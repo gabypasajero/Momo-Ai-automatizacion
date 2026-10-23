@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { formatNumber } from '@/lib/format'
 import type { Repository } from './repository'
 import type {
-  AnalyticsSummary, Assistant, ChannelAccount, ChannelType, Contact, Conversation, KnowledgeEntry,
+  AiUsage, AnalyticsSummary, Assistant, ChannelAccount, ChannelType, Contact, Conversation, KnowledgeEntry,
   Message, Organization, Pipeline, Product, Ticket,
 } from './types'
 
@@ -229,6 +229,15 @@ export class SupabaseRepository implements Repository {
       .single()
     if (error) throw error
     return data
+  }
+
+  async recordAiUsage(u: AiUsage): Promise<void> {
+    const { error } = await this.db.from('ai_usage').insert({
+      organization_id: this.orgId, feature: u.feature, model: u.model,
+      input_tokens: u.inputTokens, output_tokens: u.outputTokens, cache_read_tokens: u.cacheReadTokens, cost_usd: u.costUsd,
+    })
+    // El registro de consumo nunca debe romper la respuesta al usuario.
+    if (error) console.error('ai_usage: no se pudo registrar', error.message)
   }
 
   /** Métricas de los últimos 30 días, calculadas a partir de mensajes, conversaciones y tickets. */
