@@ -68,7 +68,10 @@ export const SETTINGS_MODULE: ModuleNav = {
   ],
 }
 
-export const ALL_MODULES = [...MODULES, SETTINGS_MODULE]
+/** Panel del dueño de la plataforma; solo aparece para administradores de Momo AI. */
+export const ADMIN_MODULE: ModuleNav = { label: 'Admin', href: '/admin', icon: ShieldCheck, breadcrumb: ['Administración', 'Empresas'] }
+
+export const ALL_MODULES = [...MODULES, SETTINGS_MODULE, ADMIN_MODULE]
 
 /** Primer segmento de la ruta → módulo activo. */
 export function findModule(pathname: string): ModuleNav | undefined {

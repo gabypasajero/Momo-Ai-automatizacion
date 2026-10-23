@@ -27,6 +27,13 @@ export const ROUTES = {
   cambiar_contrasena: '/restablecer',
 } as const
 
+/** Precio en US$ por millón de tokens (entrada, salida, lectura de caché). */
+const PRICING: Record<string, { input: number; output: number; cacheRead: number }> = {
+  'claude-opus-5-5': { input: 4, output: 20, cacheRead: 0.2 },
+  'claude-sonnet-5-5': { input: 2, output: 10, cacheRead: 0.2 },
+  'claude-haiku-5-5': { input: 0.1, output: 0.5, cacheRead: 0.01 },
+}
+
 export type AssistantAction = { type: 'navigate'; href: string; label: string }
 
 export interface AssistantTurn {
@@ -108,7 +115,7 @@ export async function runSellerAssistant(repo: Repository, history: AssistantTur
   })
 
   const client = new Anthropic()
-  const final = await client.beta.messages.toolRunner({
+  const runner = client.beta.messages.toolRunner({
     model: MODEL,
     max_tokens: 16000,
     // Chat de ayuda: esfuerzo bajo para respuestas rápidas y económicas.
@@ -120,6 +127,21 @@ export async function runSellerAssistant(repo: Repository, history: AssistantTur
     tools: [buscarProductos, verConocimiento, agregarConocimiento, irA],
     messages: history.map((t) => ({ role: t.role, content: t.text })),
   })
+
+  // Cada iteración del runner es una llamada a la API: se suma su consumo para el panel de administración.
+  let final: Anthropic.Beta.BetaMessage | undefined
+  let inputTokens = 0, outputTokens = 0, cacheReadTokens = 0, costUsd = 0
+  for await (const message of runner) {
+    final = message
+    const u = message.usage
+    const price = PRICING[message.model] ?? PRICING[MODEL]!
+    const cacheRead = u.cache_read_input_tokens ?? 0
+    const input = u.input_tokens + (u.cache_creation_input_tokens ?? 0)
+    inputTokens += input; outputTokens += u.output_tokens; cacheReadTokens += cacheRead
+    costUsd += (input * price.input + u.output_tokens * price.output + cacheRead * price.cacheRead) / 1e6
+  }
+  await repo.recordAiUsage({ feature: 'asistente_interno', model: final?.model ?? MODEL, inputTokens, outputTokens, cacheReadTokens, costUsd })
+  if (!final) return { reply: 'Listo.', actions }
 
   if (final.stop_reason === 'refusal') {
     return { reply: 'No puedo ayudarte con eso. Pregúntame por el uso de la app, tus productos o el conocimiento de la IA.', actions }

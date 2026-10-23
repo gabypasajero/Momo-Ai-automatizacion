@@ -127,3 +127,12 @@ export interface KnowledgeEntry {
   title: string
   content: string
 }
+
+export interface AiUsage {
+  feature: 'asistente_interno' | 'vendedor'
+  model: string
+  inputTokens: number
+  outputTokens: number
+  cacheReadTokens: number
+  costUsd: number
+}

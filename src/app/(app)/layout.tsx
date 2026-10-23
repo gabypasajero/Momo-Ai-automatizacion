@@ -4,6 +4,7 @@ import { SubNav, SubNavTabs } from '@/components/layout/SubNav'
 import { Topbar } from '@/components/layout/Topbar'
 import { Button, EmptyState } from '@/components/ui'
 import { MomoCompanion } from '@/features/assistant/MomoCompanion'
+import { isPlatformAdmin } from '@/features/admin'
 import { signOut } from '@/features/auth/actions'
 import { NoOrganizationError, getCurrentUser, getRepository } from '@/lib/data'
 import type { Organization } from '@/lib/data'
@@ -26,10 +27,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     )
   }
 
-  const user = await getCurrentUser()
+  const [user, showAdmin] = await Promise.all([getCurrentUser(), isPlatformAdmin()])
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar />
+      <Sidebar showAdmin={showAdmin} />
       <SubNav />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar

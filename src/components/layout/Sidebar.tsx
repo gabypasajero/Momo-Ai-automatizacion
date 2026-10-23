@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Mascot } from '@/components/brand'
-import { MODULES, SETTINGS_MODULE, findModule, type ModuleNav } from '@/config/navigation'
+import { ADMIN_MODULE, MODULES, SETTINGS_MODULE, findModule, type ModuleNav } from '@/config/navigation'
 import { cn } from '@/lib/cn'
 
 function RailLink({ module, active }: { module: ModuleNav; active: boolean }) {
@@ -23,7 +23,7 @@ function RailLink({ module, active }: { module: ModuleNav; active: boolean }) {
   )
 }
 
-export function Sidebar() {
+export function Sidebar({ showAdmin = false }: { showAdmin?: boolean }) {
   const active = findModule(usePathname())
   return (
     <nav aria-label="Módulos" className="scroll-thin flex w-20 shrink-0 flex-col items-center gap-1 overflow-y-auto border-r border-line bg-white px-2 py-3">
@@ -33,6 +33,7 @@ export function Sidebar() {
       {MODULES.map((m) => <RailLink key={m.href} module={m} active={active?.href === m.href} />)}
       <div className="mt-auto w-full pt-2">
         <RailLink module={SETTINGS_MODULE} active={active?.href === SETTINGS_MODULE.href} />
+        {showAdmin && <RailLink module={ADMIN_MODULE} active={active?.href === ADMIN_MODULE.href} />}
       </div>
     </nav>
   )

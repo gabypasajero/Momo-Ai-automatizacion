@@ -162,4 +162,5 @@ export const mockRepository: Repository = {
     knowledge.push(entry)
     return entry
   },
+  recordAiUsage: async () => {},
 }
