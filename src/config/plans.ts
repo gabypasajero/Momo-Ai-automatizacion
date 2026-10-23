@@ -1,4 +1,4 @@
-import type { PlanId } from '@/lib/data/types'
+export type PlanId = 'emprende' | 'pyme' | 'empresa' | 'corporativo'
 
 export interface Plan {
   id: PlanId
@@ -38,3 +38,6 @@ export const PLANS: Plan[] = [
 export const SETUP_FEE_CLP = 150000
 
 export const ADD_ONS = { aiConversationsPack: { amount: 1000, priceClp: 29990 }, extraUserClp: 9990 }
+
+export const findPlan = (id: string) => PLANS.find((p) => p.id === id) ?? PLANS[0]!
+export const isPlanId = (v: unknown): v is PlanId => typeof v === 'string' && PLANS.some((p) => p.id === v)

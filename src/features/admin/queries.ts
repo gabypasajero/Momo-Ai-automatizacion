@@ -1,64 +1,118 @@
 import 'server-only'
+import { redirect } from 'next/navigation'
 import { cache } from 'react'
+import type { PlanId } from '@/config/plans'
+import { callAccounts } from '@/lib/accounts'
 import { isSupabaseConfigured } from '@/lib/env'
+import type { MomoClient } from '@/lib/session'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
-import type { PlanId } from '@/lib/data/types'
 
 /** Estado del panel del dueño de la plataforma (ver momo.admin_panel_state). */
 export type AdminPanelState = 'sin_acceso' | 'sin_clave' | 'bloqueado' | 'cerrado' | 'abierto'
 
-export interface AdminCompanyRow {
+/** Cliente con la sesión de quien entra al área de administración (no exige pertenecer a una empresa). */
+export const getAdminContext = cache(async () => {
+  if (!isSupabaseConfigured) return { db: null, state: 'sin_acceso' as AdminPanelState, email: '' }
+  const db = (await createSupabaseServerClient()) as unknown as MomoClient
+  const { data: { user } } = await db.auth.getUser()
+  if (!user) redirect('/login?next=/admin')
+  const { data } = await db.rpc('admin_panel_state')
+  return { db, state: ((data as AdminPanelState | null) ?? 'sin_acceso'), email: user.email ?? '' }
+})
+
+async function openDb() {
+  const { db, state } = await getAdminContext()
+  if (!db || state !== 'abierto') throw new Error('panel cerrado')
+  return db
+}
+
+export interface CompanyRow {
   id: string
   name: string
   slug: string
   plan: PlanId
-  createdAt: string
+  status: 'activa' | 'suspendida'
+  created_at: string
   members: number
+  owner_user_id: string | null
   products: number
   knowledge: number
-  conversations30d: number
-  messages30d: number
-  aiMessages30d: number
-  ticketsWon30d: number
-  revenueWon30d: number
-  aiCostUsd30d: number
-  lastActivity: string | null
+  conversations_30d: number
+  messages_30d: number
+  ai_messages_30d: number
+  tickets_won_30d: number
+  revenue_won_30d: number
+  ai_cost_usd_30d: number
+  pending_requests: number
+  last_activity: string | null
 }
 
-/** ¿Mostrar el acceso al panel en el menú? Solo administradores de la plataforma. */
-export const isPlatformAdmin = cache(async () => {
-  if (!isSupabaseConfigured) return false
-  const supabase = await createSupabaseServerClient()
-  const { data } = await supabase.rpc('is_platform_admin')
-  return data === true
+export const listCompanies = cache(async (): Promise<CompanyRow[]> => {
+  const db = await openDb()
+  const { data, error } = await db.rpc('admin_resumen')
+  if (error) throw error
+  return ((data ?? []) as Record<string, unknown>[]).map((r) => ({
+    ...(r as unknown as CompanyRow),
+    members: Number(r.members), products: Number(r.products), knowledge: Number(r.knowledge),
+    conversations_30d: Number(r.conversations_30d), messages_30d: Number(r.messages_30d), ai_messages_30d: Number(r.ai_messages_30d),
+    tickets_won_30d: Number(r.tickets_won_30d), revenue_won_30d: Number(r.revenue_won_30d),
+    ai_cost_usd_30d: Number(r.ai_cost_usd_30d), pending_requests: Number(r.pending_requests),
+  }))
 })
 
-export async function getAdminPanelState(): Promise<AdminPanelState> {
-  if (!isSupabaseConfigured) return 'sin_acceso'
-  const supabase = await createSupabaseServerClient()
-  const { data } = await supabase.rpc('admin_panel_state')
-  return (data as AdminPanelState | null) ?? 'sin_acceso'
+export interface AccountInfo {
+  email: string | null
+  last_sign_in_at: string | null
+  must_change_password: boolean
 }
 
-export async function getAdminOverview(): Promise<AdminCompanyRow[]> {
-  const supabase = await createSupabaseServerClient()
-  const { data, error } = await supabase.rpc('admin_overview')
+/** Correos de cuentas (los entrega la función momo-usuarios con el panel abierto). */
+export async function accountsById(ids: (string | null)[]) {
+  const unique = [...new Set(ids.filter((id): id is string => !!id))]
+  if (unique.length === 0) return {} as Record<string, AccountInfo>
+  const { accounts } = await callAccounts<{ accounts: Record<string, AccountInfo> }>('admin_correos', { user_ids: unique })
+  return accounts
+}
+
+export interface RequestRow {
+  id: string
+  organization_id: string
+  organization_name: string
+  kind: 'plan' | 'canal' | 'soporte'
+  detail: string
+  message: string | null
+  status: 'pendiente' | 'aprobada' | 'rechazada' | 'resuelta'
+  created_by: string | null
+  created_at: string
+  resolved_at: string | null
+}
+
+export async function listRequests(status: string | null) {
+  const db = await openDb()
+  const { data, error } = await db.rpc('admin_list_requests', { p_status: status })
   if (error) throw error
-  return (data ?? []).map((r: Record<string, unknown>) => ({
-    id: r.id as string,
-    name: r.name as string,
-    slug: r.slug as string,
-    plan: r.plan as PlanId,
-    createdAt: r.created_at as string,
-    members: Number(r.members),
-    products: Number(r.products),
-    knowledge: Number(r.knowledge),
-    conversations30d: Number(r.conversations_30d),
-    messages30d: Number(r.messages_30d),
-    aiMessages30d: Number(r.ai_messages_30d),
-    ticketsWon30d: Number(r.tickets_won_30d),
-    revenueWon30d: Number(r.revenue_won_30d),
-    aiCostUsd30d: Number(r.ai_cost_usd_30d),
-    lastActivity: (r.last_activity as string | null) ?? null,
+  return (data ?? []) as RequestRow[]
+}
+
+export interface UsageRow {
+  day: string
+  organization_id: string
+  organization_name: string
+  feature: 'asistente_interno' | 'vendedor'
+  calls: number
+  input_tokens: number
+  output_tokens: number
+  cache_read_tokens: number
+  cost_usd: number
+}
+
+export async function aiUsage(days: number) {
+  const db = await openDb()
+  const { data, error } = await db.rpc('admin_ai_usage', { days })
+  if (error) throw error
+  return ((data ?? []) as Record<string, unknown>[]).map((r) => ({
+    ...(r as unknown as UsageRow),
+    calls: Number(r.calls), input_tokens: Number(r.input_tokens), output_tokens: Number(r.output_tokens),
+    cache_read_tokens: Number(r.cache_read_tokens), cost_usd: Number(r.cost_usd),
   }))
 }

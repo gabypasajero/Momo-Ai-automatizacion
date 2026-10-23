@@ -1,19 +1,19 @@
-import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Card } from './Card'
+import { Mascot } from '@/components/brand'
+import { cn } from '@/lib/cn'
 
-export function EmptyState({ icon: Icon, title, description, action }: {
-  icon: LucideIcon
+export function EmptyState({ title, description, action, className }: {
   title: string
   description: string
   action?: ReactNode
+  className?: string
 }) {
   return (
-    <Card className="mx-auto mt-10 max-w-md p-8 text-center">
-      <Icon className="mx-auto h-10 w-10 text-brand-300" aria-hidden />
-      <h2 className="mt-3 font-semibold">{title}</h2>
-      <p className="mt-1 text-sm text-muted">{description}</p>
-      {action && <div className="mt-4">{action}</div>}
-    </Card>
+    <div className={cn('flex flex-col items-center gap-2 rounded-3xl border border-dashed border-brand-200 bg-white px-6 py-10 text-center', className)}>
+      <Mascot className="h-14 w-14" title="" />
+      <h2 className="font-display text-lg font-bold">{title}</h2>
+      <p className="max-w-sm text-sm text-muted">{description}</p>
+      {action && <div className="mt-2 flex flex-wrap justify-center gap-2">{action}</div>}
+    </div>
   )
 }

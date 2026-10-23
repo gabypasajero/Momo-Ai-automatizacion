@@ -7,8 +7,8 @@ function textoEstado(embudo) {
   if (!embudo) return 'Cargando…'
   if (embudo.estado === 'error') return embudo.mensaje
   if (embudo.estado !== 'ok') return ''
-  const esperan = embudo.chats.filter((c) => c.etapa?.humano || !c.iaActiva).length
-  return `${embudo.chats.length} chats recientes · ${esperan} esperan a una persona`
+  const esperan = embudo.chats.filter((c) => c.espera).length
+  return `${embudo.chats.length} chats recientes · ${esperan} te esperan`
 }
 
 async function pintar() {
