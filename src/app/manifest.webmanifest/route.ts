@@ -1,7 +1,7 @@
-import type { MetadataRoute } from 'next'
-
-export default function manifest(): MetadataRoute.Manifest {
-  return {
+/** Manifiesto de la app de las empresas. Se sirve a mano para que Momo Control pueda usar el suyo. */
+export function GET() {
+  return Response.json({
+    id: '/hoy',
     name: 'Momo AI',
     short_name: 'Momo',
     description: 'Tu asistente de ventas: responde clientes y ordena tus ventas desde el teléfono.',
@@ -17,5 +17,5 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
       { src: '/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
-  }
+  }, { headers: { 'Content-Type': 'application/manifest+json', 'Cache-Control': 'public, max-age=3600' } })
 }

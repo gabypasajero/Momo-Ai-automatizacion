@@ -2,13 +2,14 @@
 
 import { Download, Share, SquarePlus, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { cn } from '@/lib/cn'
 
 type PromptEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> }
 declare global { interface Window { __momoInstall?: PromptEvent } }
 const DISMISS_KEY = 'momo_instalar_oculto'
 
 /** Registra el service worker y ofrece instalar Momo en la pantalla de inicio del teléfono. */
-export function InstallApp({ variant = 'card', name = 'Momo' }: { variant?: 'card' | 'banner'; name?: string }) {
+export function InstallApp({ variant = 'card', name = 'Momo', everywhere = false }: { variant?: 'card' | 'banner'; name?: string; everywhere?: boolean }) {
   const [prompt, setPrompt] = useState<PromptEvent | null>(null)
   const [ios, setIos] = useState(false)
   const [android, setAndroid] = useState(false)
@@ -20,7 +21,7 @@ export function InstallApp({ variant = 'card', name = 'Momo' }: { variant?: 'car
     const standalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true
     setInstalled(standalone)
     setIos(/iphone|ipad|ipod/i.test(navigator.userAgent))
-    setAndroid(/android/i.test(navigator.userAgent))
+    setAndroid(/android|cros/i.test(navigator.userAgent))
     try { setHidden(localStorage.getItem(DISMISS_KEY) === '1') } catch {}
     if (window.__momoInstall) setPrompt(window.__momoInstall)
     const onPrompt = () => { if (window.__momoInstall) setPrompt(window.__momoInstall) }
@@ -44,7 +45,7 @@ export function InstallApp({ variant = 'card', name = 'Momo' }: { variant?: 'car
   const dismiss = () => { setHidden(true); try { localStorage.setItem(DISMISS_KEY, '1') } catch {} }
 
   return (
-    <section aria-label={`Instalar ${name} en tu teléfono`} className="relative rounded-3xl border border-brand-200 bg-brand-50 p-5 md:hidden">
+    <section aria-label={`Instalar ${name} en tu teléfono`} className={cn('relative rounded-3xl border border-brand-200 bg-brand-50 p-5', !everywhere && 'md:hidden')}>
       {variant === 'banner' && (
         <button type="button" onClick={dismiss} aria-label="Ocultar aviso" className="absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-full hover:bg-white">
           <X className="h-5 w-5" aria-hidden />

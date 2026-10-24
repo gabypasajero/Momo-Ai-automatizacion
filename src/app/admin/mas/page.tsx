@@ -19,7 +19,7 @@ export default async function ControlMas() {
   return (
     <div className="space-y-4">
       <PageTitle title="Más" description={email} />
-      <InstallApp name="Momo Control" />
+      <InstallApp name="Momo Control" everywhere />
       <ul className="space-y-2">
         {LINKS.map(({ href, label, description, icon: Icon }) => (
           <li key={href}><Link href={href} className={row}>
