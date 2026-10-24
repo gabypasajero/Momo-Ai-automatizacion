@@ -199,7 +199,7 @@ export function MomoCompanion() {
     ? { right: 12, bottom: 12 }
     : hanging
       ? { left, top: HANG_TOP, transition: 'top 400ms ease' }
-      : { left, top: `calc(100vh - ${H + 10}px)`, transition: `left ${moveMs}ms linear, top 400ms ease` }
+      : { left, top: `calc(100dvh - ${H + 10}px)`, transition: `left ${moveMs}ms linear, top 400ms ease` }
 
   return (
     <>
