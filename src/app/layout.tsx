@@ -21,7 +21,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const big = (await cookies()).get('momo_letra')?.value === 'grande'
   return (
     <html lang="es-CL" className={big ? 'letra-grande' : undefined}>
-      <body className={`${nunito.variable} ${quicksand.variable} font-sans`}>{children}</body>
+      <body className={`${nunito.variable} ${quicksand.variable} font-sans`}>
+        {/* Chrome ofrece instalar una sola vez al cargar: lo guardamos para mostrar el botón en cualquier pantalla. */}
+        <script dangerouslySetInnerHTML={{ __html: "window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__momoInstall=e;window.dispatchEvent(new Event('momo-install'))})" }} />
+        {children}
+      </body>
     </html>
   )
 }
