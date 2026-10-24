@@ -1,3 +1,5 @@
+import { cookies } from 'next/headers'
+import { TextSize } from '@/components/prefs/TextSize'
 import { Check, Download, Puzzle, Trash2 } from 'lucide-react'
 import type { Metadata } from 'next'
 import { ActionForm, AutoSubmitSelect, Avatar, Badge, CancelButton, Card, CardTitle, ConfirmAction, Input, Modal, PageTitle, PasswordInput, SubmitButton, Tabs, TextArea, buttonClass } from '@/components/ui'
@@ -36,6 +38,7 @@ function RequestButton({ kind, detail, label, title, description, variant = 'sec
 }
 
 export default async function AjustesPage({ searchParams }: { searchParams: Promise<{ t?: string }> }) {
+  const big = (await cookies()).get('momo_letra')?.value === 'grande'
   const params = await searchParams
   const session = await getSession()
   const manager = canManage(session.role)
@@ -60,6 +63,7 @@ export default async function AjustesPage({ searchParams }: { searchParams: Prom
             <p className="text-sm text-muted">Rol en {session.org.name}: <strong className="text-ink">{ROLE_LABELS[session.role]}</strong></p>
             <SubmitButton>Guardar nombre</SubmitButton>
           </ActionForm>
+          <TextSize initial={big} />
         </Card>
         <Card id="contrasena" className="scroll-mt-6 space-y-4 p-5">
           <CardTitle>Cambiar contraseña</CardTitle>
