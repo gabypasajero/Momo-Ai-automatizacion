@@ -1,4 +1,4 @@
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Sparkles, Trash2 } from 'lucide-react'
 import type { Metadata } from 'next'
 import { ActionForm, Badge, ButtonLink, CancelButton, Card, CardTitle, Checkbox, ConfirmAction, EmptyState, Input, Modal, PageTitle, SearchForm, SubmitButton, Tabs, TextArea, buttonClass } from '@/components/ui'
 import { addGap, deletePolicy, savePersonality, savePolicy, saveProduct, setProductActive } from '@/features/conocimiento/actions'
@@ -192,7 +192,7 @@ export default async function ConocimientoPage({ searchParams }: { searchParams:
             </>
           )}
         </Card>
-        <Card className="space-y-4 p-5">
+        <Card id="probar" className="scroll-mt-6 space-y-4 p-5 lg:order-first">
           <CardTitle>Probar a Momo</CardTitle>
           <p className="text-sm text-muted">Escribe como si fueras un cliente. Momo responde con tus políticas y tu catálogo; la prueba no se guarda.</p>
           <TestMomo aiReady={isAiConfigured()} />
@@ -203,7 +203,8 @@ export default async function ConocimientoPage({ searchParams }: { searchParams:
 
   return (
     <div className="space-y-5">
-      <PageTitle title="Lo que Momo sabe" description="Todo lo que Momo usa para responder a tus clientes, sin inventar." />
+      <PageTitle title="Lo que Momo sabe" description="Todo lo que Momo usa para responder a tus clientes, sin inventar."
+        actions={<ButtonLink href="/conocimiento?t=personalidad#probar" variant="primary"><Sparkles className="h-4 w-4" aria-hidden />Probar a Momo</ButtonLink>} />
       <Tabs label="Secciones" active={tab} items={TABS.map((t) => ({
         id: t.id, label: t.label, href: `/conocimiento?t=${t.id}`,
         count: t.id === 'politicas' ? counts.politicas : t.id === 'productos' ? counts.productos : t.id === 'dudas' ? counts.dudas : undefined,
