@@ -7,6 +7,8 @@ import {
   EDITORS, MANAGERS, UserError, attempt, checked, fail, money, ok, optionalText, optionalUuid, requireRole, searchTerm, text, uuid,
   type ActionState,
 } from '@/lib/actions'
+import { autoReply } from '@/lib/ai/sales-agent'
+import { isAiConfigured } from '@/lib/env'
 import type { Session } from '@/lib/session'
 
 const refresh = () => {
@@ -42,7 +44,8 @@ export async function createConversation(_prev: ActionState, form: FormData): Pr
     }
 
     const { data: conversation, error } = await db.from('conversations')
-      .insert({ organization_id: org.id, contact_id: contactId, channel, ai_enabled: false, assigned_user_id: session.user.id })
+      // Con la IA activa, Momo atiende solo desde el primer mensaje (se puede apagar en el chat).
+      .insert({ organization_id: org.id, contact_id: contactId, channel, ai_enabled: isAiConfigured(), assigned_user_id: session.user.id })
       .select('id').single()
     if (error) throw error
     conversationId = conversation.id as string
@@ -57,6 +60,7 @@ export async function createConversation(_prev: ActionState, form: FormData): Pr
     if (message) {
       const { error: msgError } = await db.from('messages').insert({ organization_id: org.id, conversation_id: conversationId, author: 'client', body: message })
       if (msgError) throw msgError
+      await autoReply(session, conversationId)
     }
     return ok()
   })
@@ -81,6 +85,7 @@ export async function addMessage(_prev: ActionState, form: FormData): Promise<Ac
       sent_by_user_id: author === 'client' ? null : session.user.id,
     })
     if (error) throw error
+    if (author === 'client') await autoReply(session, conversationId)
     refresh()
     return ok(author === 'client' ? 'Mensaje del cliente agregado.' : 'Respuesta guardada.')
   })

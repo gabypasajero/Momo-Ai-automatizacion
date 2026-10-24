@@ -19,7 +19,7 @@ export const FALLBACK = { betas: ['server-side-fallback-2026-07-01'], fallbacks:
 
 export class AiNotConfiguredError extends Error {
   constructor() {
-    super('La inteligencia de Momo no está activada (falta la clave de la API de Claude).')
+    super('La inteligencia de Momo no está activada (falta la clave de Claude o de Gemini).')
   }
 }
 
@@ -67,6 +67,13 @@ export const textOf = (message: Anthropic.Beta.BetaMessage | undefined) =>
 /** Mensaje para la persona según el error de la API. */
 export function describeAiError(error: unknown) {
   if (error instanceof AiNotConfiguredError) return error.message
+  // Errores de Gemini (ver engine.ts): 429 = se acabó la cuota gratuita del momento.
+  if (error instanceof Error && error.name === 'GeminiError') {
+    const status = (error as Error & { status: number }).status
+    if (status === 429) return 'Momo llegó al límite de uso gratuito por ahora. Prueba de nuevo en un rato.'
+    console.error('IA: error de Gemini', status, error.message)
+    return 'Momo tuvo un problema para pensar la respuesta. Intenta otra vez.'
+  }
   if (error instanceof Anthropic.RateLimitError) return 'Momo está recibiendo muchas consultas. Prueba de nuevo en un minuto.'
   if (error instanceof Anthropic.APIError) {
     console.error('IA: error de la API', error.status, error.message)

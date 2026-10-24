@@ -7,5 +7,5 @@ export const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE
 /** Esquema de Postgres donde viven las tablas de Momo. */
 export const DB_SCHEMA = 'momo'
 
-/** ¿Está activa la inteligencia de Momo? (clave de la API de Claude, solo en el servidor) */
-export const isAiConfigured = () => Boolean(process.env.ANTHROPIC_API_KEY)
+/** ¿Está activa la inteligencia de Momo? (clave de Claude o de Gemini, solo en el servidor) */
+export const isAiConfigured = () => Boolean(process.env.ANTHROPIC_API_KEY || process.env.GEMINI_API_KEY)
