@@ -52,16 +52,6 @@ end $$;
 revoke all on function momo.avisos_claves(text) from public;
 grant execute on function momo.avisos_claves(text) to anon, authenticated;
 
--- Borra los teléfonos que ya no existen (desinstalaron o bloquearon avisos).
-create or replace function momo.avisos_borrar(p_secret text, p_endpoints text[]) returns void
-language plpgsql security definer set search_path = '' as $$
-begin
-  if p_secret is null or p_secret is distinct from momo.vault_get('momo_avisos_secret') then raise exception 'no autorizado'; end if;
-  delete from momo.push_subscriptions where endpoint = any(p_endpoints);
-end $$;
-revoke all on function momo.avisos_borrar(text, text[]) from public;
-grant execute on function momo.avisos_borrar(text, text[]) to anon, authenticated;
-
 -- Cuando escribe un cliente, se avisa a todo el equipo (menos a quien lo registró).
 create or replace function momo.avisar_mensaje_cliente() returns trigger
 language plpgsql security definer set search_path = '' as $$
