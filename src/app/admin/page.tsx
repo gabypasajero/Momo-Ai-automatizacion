@@ -1,6 +1,7 @@
 import { ArrowRight, Building2, Inbox, Sparkles } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { InstallApp } from '@/components/pwa/InstallApp'
 import { Badge, Card, CardTitle } from '@/components/ui'
 import { CreateCompanyButton } from '@/features/admin/AdminForms'
 import { businessNumbers, growthByMonth } from '@/features/admin/metrics'
@@ -20,6 +21,7 @@ export default async function ControlHome() {
 
   return (
     <div className="space-y-5">
+      <InstallApp variant="banner" name="Momo Control" everywhere />
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="font-semibold capitalize text-muted">{formatToday()}</p>

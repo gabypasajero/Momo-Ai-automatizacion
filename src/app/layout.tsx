@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   title: { default: 'Momo AI', template: '%s · Momo AI' },
   description: 'CRM omnicanal con IA para vender por Facebook, WhatsApp, Instagram y TikTok.',
   applicationName: 'Momo AI',
+  manifest: '/manifest.webmanifest',
   appleWebApp: { capable: true, title: 'Momo', statusBarStyle: 'default' },
   icons: { apple: '/icons/apple-touch-icon.png' },
 }
