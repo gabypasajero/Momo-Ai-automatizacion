@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { EDITORS, MANAGERS, attempt, checked, describeError, fail, money, ok, optionalMoney, optionalText, requireRole, text, uuid, type ActionState } from '@/lib/actions'
 import { describeAiError } from '@/lib/ai/runtime'
-import { testReply } from '@/lib/ai/sales-agent'
+import { testReply, trainReply } from '@/lib/ai/sales-agent'
 import type { Session } from '@/lib/session'
 
 const refresh = () => {
@@ -182,5 +182,44 @@ export async function testMomo(question: string): Promise<TestResult> {
     return result.text ? { text: result.text } : { error: result.error ?? 'Momo no encontró qué responder.' }
   } catch (error) {
     return { error: describeAiError(error) }
+  }
+}
+
+export type TrainResult = { text?: string; error?: string; gaps?: string[] }
+
+/** Un turno del entrenamiento: Momo responde a la conversación de práctica completa. */
+export async function trainMomo(messages: { author: 'client' | 'ai'; body: string }[]): Promise<TrainResult> {
+  let session
+  try {
+    session = await requireRole(EDITORS)
+  } catch (error) {
+    return { error: describeError(error) }
+  }
+  const clean = messages.slice(-30).map((m) => ({ author: m.author === 'ai' ? 'ai' as const : 'client' as const, body: String(m.body).trim().slice(0, 1000) })).filter((m) => m.body)
+  if (clean.at(-1)?.author !== 'client') return { error: 'Escribe un mensaje como lo haría un cliente.' }
+  try {
+    const result = await trainReply(session, clean)
+    if (result.gaps?.length) refresh()
+    return result.text ? { text: result.text, gaps: result.gaps } : { error: result.error ?? 'Momo no encontró qué responder.', gaps: result.gaps }
+  } catch (error) {
+    return { error: describeAiError(error) }
+  }
+}
+
+/** Corrección durante el entrenamiento: queda como conocimiento para las próximas respuestas. */
+export async function teachMomo(question: string, answer: string): Promise<{ ok?: boolean; error?: string }> {
+  try {
+    const session = await requireRole(EDITORS)
+    const q = question.trim().slice(0, 500)
+    const a = answer.trim().slice(0, 2000)
+    if (a.length < 3) return { error: 'Escribe cómo debió responder Momo.' }
+    const title = `Respuesta enseñada: ${q.length > 60 ? q.slice(0, 57) + '…' : q || 'conversación de práctica'}`
+    const content = q ? `Cuando un cliente pregunte algo como «${q}», responde así: ${a}` : a
+    const { error } = await session.db.from('knowledge_entries').insert({ organization_id: session.org.id, assistant_id: await assistantId(session), title, content })
+    if (error) throw error
+    refresh()
+    return { ok: true }
+  } catch (error) {
+    return { error: describeError(error) }
   }
 }

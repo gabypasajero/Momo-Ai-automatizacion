@@ -1,0 +1,155 @@
+'use client'
+
+import { BookOpenCheck, Check, Pencil, RotateCcw, SendHorizontal, ThumbsUp } from 'lucide-react'
+import Link from 'next/link'
+import { useEffect, useRef, useState, useTransition } from 'react'
+import { Mascot } from '@/components/brand'
+import { buttonClass, inputClass } from '@/components/ui'
+import { cn } from '@/lib/cn'
+import { teachMomo, trainMomo } from './actions'
+
+type Msg =
+  | { id: number; author: 'client'; body: string }
+  | { id: number; author: 'ai'; body: string; question: string; status?: 'bien' | 'corregida' }
+  | { id: number; author: 'note'; body: string; link?: boolean }
+
+const STORE = 'momo_entrenamiento'
+let seq = Date.now()
+
+/**
+ * Entrenar a Momo: un chat de práctica igual al de un cliente. Enter envía.
+ * Lo que Momo no sabe queda en "Dudas" y cada corrección se guarda como conocimiento.
+ */
+export function TrainMomo({ aiReady }: { aiReady: boolean }) {
+  const [messages, setMessages] = useState<Msg[]>([])
+  const [draft, setDraft] = useState('')
+  const [editing, setEditing] = useState<number | null>(null)
+  const [fix, setFix] = useState('')
+  const [pending, start] = useTransition()
+  const endRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    try { const saved = localStorage.getItem(STORE); if (saved) setMessages(JSON.parse(saved) as Msg[]) } catch {}
+  }, [])
+  useEffect(() => {
+    try { localStorage.setItem(STORE, JSON.stringify(messages.slice(-60))) } catch {}
+    endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [messages, pending])
+
+  if (!aiReady) {
+    return <p className="rounded-2xl bg-accent-soft p-4 text-sm text-accent-strong">El entrenamiento se activa cuando se agregue la clave de la IA de Momo.</p>
+  }
+
+  const send = () => {
+    const body = draft.trim()
+    if (!body || pending) return
+    const next: Msg[] = [...messages, { id: ++seq, author: 'client', body }]
+    setMessages(next); setDraft('')
+    start(async () => {
+      const transcript = next.filter((m) => m.author !== 'note').map((m) => ({ author: m.author as 'client' | 'ai', body: m.body }))
+      const result = await trainMomo(transcript)
+      const add: Msg[] = []
+      for (const g of result.gaps ?? []) add.push({ id: ++seq, author: 'note', body: `Momo no sabía esto y lo anotó como duda: «${g}»`, link: true })
+      add.push(result.text
+        ? { id: ++seq, author: 'ai', body: result.text, question: body }
+        : { id: ++seq, author: 'note', body: result.error ?? 'Momo no pudo responder.' })
+      setMessages((m) => [...m, ...add])
+      inputRef.current?.focus()
+    })
+  }
+
+  const teach = (msg: Extract<Msg, { author: 'ai' }>) => {
+    const answer = fix.trim()
+    if (answer.length < 3) return
+    start(async () => {
+      const res = await teachMomo(msg.question, answer)
+      if (res.error) { setMessages((m) => [...m, { id: ++seq, author: 'note', body: res.error! }]); return }
+      setMessages((m) => [
+        ...m.map((x) => (x.id === msg.id ? { ...msg, body: answer, status: 'corregida' as const } : x)),
+        { id: ++seq, author: 'note', body: 'Guardado. Desde ahora Momo responderá así.' },
+      ])
+      setEditing(null); setFix('')
+    })
+  }
+
+  const mark = (id: number) => setMessages((m) => m.map((x) => (x.id === id && x.author === 'ai' ? { ...x, status: 'bien' as const } : x)))
+
+  return (
+    <div className="flex flex-col overflow-hidden rounded-3xl border border-line bg-white">
+      <div className="flex items-center gap-3 border-b border-line bg-brand-50 px-4 py-3">
+        <Mascot className="h-10 w-10" title="" />
+        <div className="min-w-0 flex-1">
+          <p className="font-extrabold">Entrenando a Momo</p>
+          <p className="text-xs text-muted">Tú eres el cliente. Nada de esto se le envía a nadie.</p>
+        </div>
+        {messages.length > 0 && (
+          <button type="button" onClick={() => { setMessages([]); setEditing(null) }} className={buttonClass('ghost', 'sm')}>
+            <RotateCcw className="h-4 w-4" aria-hidden />Nueva
+          </button>
+        )}
+      </div>
+
+      <div className="flex max-h-[60vh] min-h-72 flex-col gap-3 overflow-y-auto bg-surface p-4" aria-live="polite" aria-label="Conversación de práctica">
+        {messages.length === 0 && (
+          <div className="m-auto max-w-sm text-center text-sm text-muted">
+            <p className="font-bold text-ink">Escríbele como lo haría un cliente</p>
+            <p className="mt-1">Por ejemplo: «Hola, ¿cuánto sale el clóset de 3 puertas con despacho a Maipú?». Presiona Enter para enviar.</p>
+          </div>
+        )}
+        {messages.map((m) => m.author === 'note' ? (
+          <p key={m.id} className="mx-auto max-w-[90%] rounded-2xl bg-warning-soft px-3 py-2 text-center text-xs font-semibold text-warning">
+            {m.body}{m.link && <> · <Link href="/conocimiento?t=dudas" className="underline">Responder en Dudas</Link></>}
+          </p>
+        ) : m.author === 'client' ? (
+          <div key={m.id} className="flex max-w-[85%] flex-col items-end gap-1 self-end">
+            <p className="whitespace-pre-line break-words rounded-[20px_20px_6px_20px] bg-brand-600 px-4 py-2.5 text-white">{m.body}</p>
+            <span className="text-xs text-muted">Tú (cliente)</span>
+          </div>
+        ) : (
+          <div key={m.id} className="flex max-w-[85%] flex-col items-start gap-1 self-start">
+            {editing === m.id ? (
+              <div className="w-full min-w-[min(80vw,420px)] space-y-2 rounded-2xl border border-brand-200 bg-white p-3">
+                <p className="text-xs font-bold text-muted">¿Cómo debió responder Momo?</p>
+                <textarea value={fix} onChange={(e) => setFix(e.target.value)} rows={4} maxLength={2000} className={`${inputClass} resize-y`} autoFocus />
+                <div className="flex flex-wrap justify-end gap-2">
+                  <button type="button" onClick={() => setEditing(null)} className={buttonClass('ghost', 'sm')}>Cancelar</button>
+                  <button type="button" disabled={pending} onClick={() => teach(m)} className={buttonClass('primary', 'sm')}>
+                    <BookOpenCheck className="h-4 w-4" aria-hidden />Enseñar a Momo
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="whitespace-pre-line break-words rounded-[20px_20px_20px_6px] border border-line bg-white px-4 py-2.5">{m.body}</p>
+            )}
+            <span className="flex flex-wrap items-center gap-2 text-xs text-muted">
+              <Mascot className="h-4 w-4" title="" />Momo
+              {m.status === 'corregida' && <span className="font-bold text-success">· Corregida y guardada</span>}
+              {m.status === 'bien' && <span className="inline-flex items-center gap-1 font-bold text-success">· <Check className="h-3 w-3" aria-hidden />Bien</span>}
+              {!m.status && editing !== m.id && <>
+                <button type="button" onClick={() => mark(m.id)} className="inline-flex min-h-8 items-center gap-1 rounded-full px-2 font-bold hover:bg-success-soft hover:text-success"><ThumbsUp className="h-3.5 w-3.5" aria-hidden />Bien</button>
+                <button type="button" onClick={() => { setEditing(m.id); setFix(m.body) }} className="inline-flex min-h-8 items-center gap-1 rounded-full px-2 font-bold hover:bg-brand-50 hover:text-brand-700"><Pencil className="h-3.5 w-3.5" aria-hidden />Corregir</button>
+              </>}
+            </span>
+          </div>
+        ))}
+        {pending && editing === null && (
+          <div className="flex items-center gap-2 self-start rounded-full bg-white px-4 py-2 text-sm text-muted ring-1 ring-line">
+            <Mascot className="h-5 w-5" title="" />Momo está escribiendo…
+          </div>
+        )}
+        <div ref={endRef} />
+      </div>
+
+      <form className="flex items-end gap-2 border-t border-line p-3" onSubmit={(e) => { e.preventDefault(); send() }}>
+        <label className="sr-only" htmlFor="entrenar-mensaje">Mensaje del cliente</label>
+        <textarea id="entrenar-mensaje" ref={inputRef} value={draft} onChange={(e) => setDraft(e.target.value)} rows={1} maxLength={1000}
+          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send() } }}
+          placeholder="Escribe como cliente y presiona Enter" className={cn(inputClass, 'max-h-40 min-h-12 flex-1 resize-none')} />
+        <button type="submit" disabled={pending || !draft.trim()} aria-label="Enviar" className={cn(buttonClass('primary'), 'h-12 w-12 shrink-0 px-0')}>
+          <SendHorizontal className="h-5 w-5" aria-hidden />
+        </button>
+      </form>
+    </div>
+  )
+}

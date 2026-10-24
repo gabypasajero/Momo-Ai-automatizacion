@@ -51,7 +51,7 @@ export default async function ConversacionesPage({ searchParams }: { searchParam
       <div className={cn(selected && 'hidden lg:block')}>
         <PageTitle title="Conversaciones" description="Cada chat con su venta al lado. Momo sugiere, tú decides."
           actions={<div className="flex flex-wrap gap-2">
-            <ButtonLink href="/conocimiento?t=probar" variant="secondary"><Sparkles className="h-4 w-4" aria-hidden />Probar a Momo</ButtonLink>
+            <ButtonLink href="/conocimiento?t=probar" variant="secondary"><Sparkles className="h-4 w-4" aria-hidden />Entrenar a Momo</ButtonLink>
             {editable && <NewConversation key={params.c ?? 'nueva'} />}
           </div>} />
       </div>

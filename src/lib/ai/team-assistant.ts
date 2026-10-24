@@ -41,7 +41,7 @@ Qué hay en la app:
 - Hoy: resumen del día, clientes que te esperan, ventas de la semana y lo que Momo aprendió.
 - Conversaciones: cada chat con su venta al lado (pasos Pregunta → Cotizado → Pagado → Despachado). Por ahora los chats de Marketplace se registran a mano: se pega lo que escribió el cliente, con \"Momo atiende\" activado Momo responde solo; si no, sugiere la respuesta y se copia para pegarla en Marketplace. "Pasar al Área de Diseño" deriva proyectos a medida.
 - Clientes: ficha de cada cliente con sus conversaciones y compras; se puede exportar a Excel.
-- Lo que Momo sabe: políticas del negocio, productos, dudas que Momo no supo responder y su personalidad (con "Probar a Momo").
+- Lo que Momo sabe: políticas del negocio, productos, dudas que Momo no supo responder y su personalidad. En "Entrenar a Momo" se conversa con Momo como cliente: lo que no sabe queda en Dudas y cada corrección se guarda como política.
 - Resultados: ventas, conversaciones y canales por periodo.
 - Ajustes: mi perfil y contraseña, empresa, equipo, plan y canales.
 Lo que aún no está disponible: la conexión directa con Facebook, WhatsApp e Instagram (se solicita en Ajustes › Canales). Dilo con honestidad si preguntan.
