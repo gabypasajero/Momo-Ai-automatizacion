@@ -1,8 +1,19 @@
 'use server'
 
+import webpush from 'web-push'
 import { getSession } from '@/lib/session'
 
 interface Sub { endpoint: string; p256dh: string; auth: string }
+
+/** Clave pública de los avisos. La primera vez se crea el par de claves y se guarda en la bóveda de Supabase. */
+export async function getPushPublicKey(): Promise<string | null> {
+  const { db } = await getSession()
+  const { data } = await db.rpc('avisos_clave_publica')
+  if (data) return data as string
+  const keys = webpush.generateVAPIDKeys()
+  const { data: stored, error } = await db.rpc('avisos_iniciar_claves', { p_public: keys.publicKey, p_private: keys.privateKey })
+  return error ? null : (stored as string)
+}
 
 /** Guarda la "dirección" de este teléfono para recibir avisos. */
 export async function savePushSubscription(sub: Sub) {

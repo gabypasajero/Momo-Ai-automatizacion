@@ -2,9 +2,8 @@
 
 import { Bell, BellOff, BellRing } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { VAPID_PUBLIC_KEY } from '@/config/push'
 import { cn } from '@/lib/cn'
-import { deletePushSubscription, savePushSubscription } from './actions'
+import { deletePushSubscription, getPushPublicKey, savePushSubscription } from './actions'
 
 type State = 'cargando' | 'no-soportado' | 'instalar' | 'bloqueado' | 'apagado' | 'encendido'
 
@@ -39,8 +38,10 @@ export function PushToggle({ className }: { className?: string }) {
     try {
       const permission = await Notification.requestPermission()
       if (permission !== 'granted') { setState(permission === 'denied' ? 'bloqueado' : 'apagado'); return }
+      const publicKey = await getPushPublicKey()
+      if (!publicKey) { setMsg('Los avisos aún no están disponibles. Intenta más tarde.'); return }
       const reg = await navigator.serviceWorker.ready
-      const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(VAPID_PUBLIC_KEY) })
+      const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(publicKey) })
       const json = sub.toJSON()
       const res = await savePushSubscription({ endpoint: sub.endpoint, p256dh: json.keys?.p256dh ?? '', auth: json.keys?.auth ?? '' })
       if (!res.ok) { await sub.unsubscribe(); setMsg('No se pudo activar. Intenta de nuevo en un rato.'); return }
