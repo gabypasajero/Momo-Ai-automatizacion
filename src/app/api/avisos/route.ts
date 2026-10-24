@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import webpush from 'web-push'
-import { VAPID_PUBLIC_KEY } from '@/config/push'
 import { DB_SCHEMA, SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/lib/env'
 
 interface Payload {
@@ -14,13 +13,16 @@ interface Payload {
 
 /** Lo llama la base de datos (momo.avisar_mensaje_cliente) cuando escribe un cliente. */
 export async function POST(request: Request) {
-  const secret = process.env.MOMO_AVISOS_SECRET
-  const privateKey = process.env.VAPID_PRIVATE_KEY
-  if (!secret || !privateKey) return NextResponse.json({ error: 'avisos sin configurar' }, { status: 503 })
-  if (request.headers.get('x-momo-secret') !== secret) return NextResponse.json({ error: 'no autorizado' }, { status: 401 })
+  // La clave compartida la manda la base de datos; Supabase la valida y entrega las claves de envío.
+  const secret = request.headers.get('x-momo-secret')
+  if (!secret) return NextResponse.json({ error: 'no autorizado' }, { status: 401 })
+  const db = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { db: { schema: DB_SCHEMA }, auth: { persistSession: false } })
+  const { data: keys, error } = await db.rpc('avisos_claves', { p_secret: secret })
+  const vapid = keys as { public: string | null; private: string | null } | null
+  if (error || !vapid?.public || !vapid.private) return NextResponse.json({ error: 'no autorizado' }, { status: 401 })
 
   const data = (await request.json()) as Payload
-  webpush.setVapidDetails('https://momo-ai-automatizacion-de-todito.vercel.app', VAPID_PUBLIC_KEY, privateKey)
+  webpush.setVapidDetails('https://momo-ai-automatizacion-de-todito.vercel.app', vapid.public, vapid.private)
   const message = JSON.stringify({ title: data.title, body: data.body, url: data.url, tag: data.tag })
 
   const gone: string[] = []
@@ -34,7 +36,6 @@ export async function POST(request: Request) {
   }))
 
   if (gone.length) {
-    const db = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { db: { schema: DB_SCHEMA }, auth: { persistSession: false } })
     await db.rpc('avisos_borrar', { p_secret: secret, p_endpoints: gone })
   }
   return NextResponse.json({ sent: (data.subscriptions?.length ?? 0) - gone.length, removed: gone.length })
