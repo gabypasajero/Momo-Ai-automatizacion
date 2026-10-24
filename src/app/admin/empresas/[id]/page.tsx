@@ -28,7 +28,7 @@ export default async function AdminCompanyPage({ params }: { params: Promise<{ i
 
   return (
     <div className="space-y-6">
-      <Link href="/admin" className="inline-flex min-h-10 items-center gap-2 font-bold text-brand-700 hover:underline"><ArrowLeft className="h-4 w-4" aria-hidden />Empresas</Link>
+      <Link href="/admin/empresas" className="inline-flex min-h-10 items-center gap-2 font-bold text-brand-700 hover:underline"><ArrowLeft className="h-4 w-4" aria-hidden />Empresas</Link>
       <header className="flex flex-wrap items-center gap-3">
         <h1 className="font-display text-[28px] font-bold leading-tight">{company.name}</h1>
         <Badge tone={company.status === 'activa' ? 'success' : 'danger'}>{company.status === 'activa' ? 'Activa' : 'Suspendida'}</Badge>

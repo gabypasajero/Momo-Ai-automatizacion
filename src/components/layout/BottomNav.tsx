@@ -13,22 +13,22 @@ const ITEMS: { id: NavId; label: string; href: string }[] = [
   { id: 'mas', label: 'Más', href: '/mas' },
 ]
 
-/** Menú inferior del celular: 4 botones grandes al alcance del pulgar. */
+/** Menú inferior del teléfono: barra flotante color vino con 4 botones grandes al alcance del pulgar. */
 export function BottomNav({ waiting }: { waiting: number }) {
   const section = activeSection(usePathname())
   // Lo que no está en la barra (conocimiento, resultados, ajustes) se marca en "Más".
   const active = section && ITEMS.some((i) => i.id === section) ? section : section ? 'mas' : null
   return (
-    <nav aria-label="Menú principal" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-line bg-white/95 px-2 pb-[max(12px,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur md:hidden">
+    <nav aria-label="Menú principal" className="fixed inset-x-3 bottom-[max(10px,env(safe-area-inset-bottom))] z-30 grid grid-cols-4 gap-1 rounded-[28px] bg-brand-900 p-1.5 shadow-xl shadow-brand-900/30 md:hidden">
       {ITEMS.map((item) => {
         const isActive = active === item.id
         return (
           <Link key={item.id} href={item.href} aria-current={isActive ? 'page' : undefined}
-            className={cn('relative flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-2xl text-xs', isActive ? 'font-extrabold text-brand-600' : 'font-bold text-muted')}>
-            <NavIcon id={item.id} className="h-6 w-6" />
+            className={cn('relative flex min-h-16 flex-col items-center justify-center gap-1 rounded-[22px] text-[13px] transition', isActive ? 'bg-brand-50 font-extrabold text-brand-700' : 'font-bold text-white/85')}>
+            <NavIcon id={item.id} className="h-7 w-7" />
             {item.label}
             {item.id === 'conversaciones' && waiting > 0 && (
-              <span className="absolute right-[22%] top-0.5 min-w-5 rounded-full bg-brand-600 px-1 text-center text-[11px] font-extrabold text-white" aria-label={`${waiting} te esperan`}>{waiting}</span>
+              <span className="absolute right-[18%] top-1 min-w-6 rounded-full bg-[#F4B740] px-1 text-center text-xs text-brand-900 ring-2 ring-brand-900 font-extrabold" aria-label={`${waiting} te esperan`}>{waiting}</span>
             )}
           </Link>
         )
