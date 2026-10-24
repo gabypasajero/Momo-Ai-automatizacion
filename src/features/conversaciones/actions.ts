@@ -8,7 +8,6 @@ import {
   type ActionState,
 } from '@/lib/actions'
 import { autoReply } from '@/lib/ai/sales-agent'
-import { isAiConfigured } from '@/lib/env'
 import type { Session } from '@/lib/session'
 
 const refresh = () => {
@@ -44,8 +43,8 @@ export async function createConversation(_prev: ActionState, form: FormData): Pr
     }
 
     const { data: conversation, error } = await db.from('conversations')
-      // Con la IA activa, Momo atiende solo desde el primer mensaje (se puede apagar en el chat).
-      .insert({ organization_id: org.id, contact_id: contactId, channel, ai_enabled: isAiConfigured(), assigned_user_id: session.user.id })
+      // Parte en "Respondes tú": Momo responde solo únicamente si alguien activa "Momo atiende".
+      .insert({ organization_id: org.id, contact_id: contactId, channel, ai_enabled: false, assigned_user_id: session.user.id })
       .select('id').single()
     if (error) throw error
     conversationId = conversation.id as string
