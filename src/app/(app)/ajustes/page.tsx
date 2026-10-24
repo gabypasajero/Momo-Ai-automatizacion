@@ -1,3 +1,4 @@
+import { PushToggle } from '@/features/avisos/PushToggle'
 import { cookies } from 'next/headers'
 import { TextSize } from '@/components/prefs/TextSize'
 import { Check, Download, Puzzle, Trash2 } from 'lucide-react'
@@ -64,6 +65,7 @@ export default async function AjustesPage({ searchParams }: { searchParams: Prom
             <SubmitButton>Guardar nombre</SubmitButton>
           </ActionForm>
           <TextSize initial={big} />
+          <PushToggle />
         </Card>
         <Card id="contrasena" className="scroll-mt-6 space-y-4 p-5">
           <CardTitle>Cambiar contraseña</CardTitle>
