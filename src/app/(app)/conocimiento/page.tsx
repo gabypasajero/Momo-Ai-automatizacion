@@ -11,8 +11,9 @@ import { canEdit, canManage, getSession } from '@/lib/session'
 
 export const metadata: Metadata = { title: 'Lo que Momo sabe' }
 
-type Tab = 'politicas' | 'productos' | 'dudas' | 'personalidad'
+type Tab = 'probar' | 'politicas' | 'productos' | 'dudas' | 'personalidad'
 const TABS: { id: Tab; label: string }[] = [
+  { id: 'probar', label: 'Probar a Momo' },
   { id: 'politicas', label: 'Políticas' },
   { id: 'productos', label: 'Productos' },
   { id: 'dudas', label: 'Dudas' },
@@ -62,7 +63,15 @@ export default async function ConocimientoPage({ searchParams }: { searchParams:
   const counts = await knowledgeCounts(session)
 
   let content: React.ReactNode
-  if (tab === 'politicas') {
+  if (tab === 'probar') {
+    content = (
+      <Card className="mx-auto max-w-3xl space-y-4 p-5">
+        <CardTitle>Probar a Momo</CardTitle>
+        <p className="text-sm text-muted">Escribe como si fueras un cliente. Momo responde con tus políticas y tu catálogo. Es solo una prueba: no se envía a nadie ni se guarda.</p>
+        <TestMomo aiReady={isAiConfigured()} />
+      </Card>
+    )
+  } else if (tab === 'politicas') {
     const policies = await listPolicies(session, q)
     content = (
       <div className="space-y-4">
@@ -173,7 +182,7 @@ export default async function ConocimientoPage({ searchParams }: { searchParams:
   } else {
     const assistant = await getAssistant(session)
     content = (
-      <div className="grid items-start gap-5 lg:grid-cols-2">
+      <div className="grid items-start gap-5">
         <Card className="space-y-4 p-5">
           <div className="flex items-center justify-between gap-2"><CardTitle>Cómo atiende Momo</CardTitle><Badge tone="accent">IA de ventas</Badge></div>
           {!assistant ? <p className="text-sm text-muted">Esta empresa aún no tiene asistente configurado. Escríbenos para activarlo.</p> : manager ? (
@@ -192,11 +201,6 @@ export default async function ConocimientoPage({ searchParams }: { searchParams:
             </>
           )}
         </Card>
-        <Card id="probar" className="scroll-mt-6 space-y-4 p-5 lg:order-first">
-          <CardTitle>Probar a Momo</CardTitle>
-          <p className="text-sm text-muted">Escribe como si fueras un cliente. Momo responde con tus políticas y tu catálogo; la prueba no se guarda.</p>
-          <TestMomo aiReady={isAiConfigured()} />
-        </Card>
       </div>
     )
   }
@@ -204,7 +208,7 @@ export default async function ConocimientoPage({ searchParams }: { searchParams:
   return (
     <div className="space-y-5">
       <PageTitle title="Lo que Momo sabe" description="Todo lo que Momo usa para responder a tus clientes, sin inventar."
-        actions={<ButtonLink href="/conocimiento?t=personalidad#probar" variant="primary"><Sparkles className="h-4 w-4" aria-hidden />Probar a Momo</ButtonLink>} />
+        actions={<ButtonLink href="/conocimiento?t=probar" variant="primary"><Sparkles className="h-4 w-4" aria-hidden />Probar a Momo</ButtonLink>} />
       <Tabs label="Secciones" active={tab} items={TABS.map((t) => ({
         id: t.id, label: t.label, href: `/conocimiento?t=${t.id}`,
         count: t.id === 'politicas' ? counts.politicas : t.id === 'productos' ? counts.productos : t.id === 'dudas' ? counts.dudas : undefined,

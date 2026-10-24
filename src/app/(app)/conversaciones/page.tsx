@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { EmptyState, PageTitle, SearchForm, Tabs } from '@/components/ui'
+import { Sparkles } from 'lucide-react'
+import { ButtonLink, EmptyState, PageTitle, SearchForm, Tabs } from '@/components/ui'
 import { ConversationRow } from '@/features/conversaciones/ConversationList'
 import { ConversationView } from '@/features/conversaciones/ConversationView'
 import { NewConversation } from '@/features/conversaciones/NewConversation'
@@ -49,7 +50,10 @@ export default async function ConversacionesPage({ searchParams }: { searchParam
       {selected && <h1 className="sr-only lg:hidden">Conversación con {selected.contact.name}</h1>}
       <div className={cn(selected && 'hidden lg:block')}>
         <PageTitle title="Conversaciones" description="Cada chat con su venta al lado. Momo sugiere, tú decides."
-          actions={editable && <NewConversation key={params.c ?? 'nueva'} />} />
+          actions={<div className="flex flex-wrap gap-2">
+            <ButtonLink href="/conocimiento?t=probar" variant="secondary"><Sparkles className="h-4 w-4" aria-hidden />Probar a Momo</ButtonLink>
+            {editable && <NewConversation key={params.c ?? 'nueva'} />}
+          </div>} />
       </div>
 
       <div className="grid items-start gap-5 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)_300px]">
