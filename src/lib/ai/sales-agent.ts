@@ -70,10 +70,11 @@ ${lines.join('\n') || '(sin mensajes todavía)'}
 Escribe la próxima respuesta para el cliente.`
 }
 
-export type ReplyResult = { text: string; error?: undefined } | { error: string; text?: undefined }
+export type ReplyResult = ({ text: string; error?: undefined } | { error: string; text?: undefined }) & { gaps?: string[] }
 
 async function reply(session: Session, ctx: Context, { allowGaps }: { allowGaps: boolean }): Promise<ReplyResult> {
   const { system, model } = await businessPrompt(session)
+  const gaps: string[] = []
 
   const buscarProductos = defineTool({
     name: 'buscar_productos',
@@ -92,6 +93,7 @@ async function reply(session: Session, ctx: Context, { allowGaps }: { allowGaps:
       if (!existing?.length) {
         await db.from('knowledge_gaps').insert({ organization_id: org.id, question: pregunta, conversation_id: ctx.conversationId })
       }
+      gaps.push(pregunta)
       return 'Duda anotada. Responde al cliente que lo confirmas en breve.'
     },
   })
@@ -103,7 +105,7 @@ async function reply(session: Session, ctx: Context, { allowGaps }: { allowGaps:
   })
   if (result.refused) return { error: 'Momo no puede responder este mensaje. Respóndelo tú.' }
   const text = result.text
-  return text ? { text } : { error: 'Momo no encontró qué responder. Intenta de nuevo.' }
+  return text ? { text, gaps } : { error: 'Momo no encontró qué responder. Intenta de nuevo.', gaps }
 }
 
 /** Sugerencia de respuesta para una conversación registrada. */
@@ -126,6 +128,17 @@ export async function suggestReply(session: Session, conversationId: string): Pr
     sale: tickets?.[0] ?? null,
     messages: (messages ?? []) as Transcript[],
     conversationId,
+  }, { allowGaps: true })
+}
+
+/**
+ * Entrenar a Momo: conversación de práctica completa (no se guarda). Lo que Momo no sabe
+ * queda anotado en "Dudas" para que el equipo se lo enseñe.
+ */
+export async function trainReply(session: Session, messages: { author: 'client' | 'ai'; body: string }[]) {
+  return reply(session, {
+    channel: 'marketplace', customer: 'un cliente de práctica', comuna: null, sale: null,
+    messages, conversationId: null,
   }, { allowGaps: true })
 }
 

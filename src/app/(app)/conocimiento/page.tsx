@@ -4,7 +4,7 @@ import { ActionForm, Badge, ButtonLink, CancelButton, Card, CardTitle, Checkbox,
 import { addGap, deletePolicy, savePersonality, savePolicy, saveProduct, setProductActive } from '@/features/conocimiento/actions'
 import { GapCard } from '@/features/conocimiento/GapCard'
 import { PRODUCTS_PAGE, getAssistant, knowledgeCounts, listGaps, listPolicies, listProducts, type Policy, type ProductRow } from '@/features/conocimiento/queries'
-import { TestMomo } from '@/features/conocimiento/TestMomo'
+import { TrainMomo } from '@/features/conocimiento/TrainMomo'
 import { isAiConfigured } from '@/lib/env'
 import { formatClp, formatNumber, formatShortDate } from '@/lib/format'
 import { canEdit, canManage, getSession } from '@/lib/session'
@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: 'Lo que Momo sabe' }
 
 type Tab = 'probar' | 'politicas' | 'productos' | 'dudas' | 'personalidad'
 const TABS: { id: Tab; label: string }[] = [
-  { id: 'probar', label: 'Probar a Momo' },
+  { id: 'probar', label: 'Entrenar a Momo' },
   { id: 'politicas', label: 'Políticas' },
   { id: 'productos', label: 'Productos' },
   { id: 'dudas', label: 'Dudas' },
@@ -65,11 +65,10 @@ export default async function ConocimientoPage({ searchParams }: { searchParams:
   let content: React.ReactNode
   if (tab === 'probar') {
     content = (
-      <Card className="mx-auto max-w-3xl space-y-4 p-5">
-        <CardTitle>Probar a Momo</CardTitle>
-        <p className="text-sm text-muted">Escribe como si fueras un cliente. Momo responde con tus políticas y tu catálogo. Es solo una prueba: no se envía a nadie ni se guarda.</p>
-        <TestMomo aiReady={isAiConfigured()} />
-      </Card>
+      <div className="mx-auto max-w-3xl space-y-3">
+        <p className="text-sm text-muted">Conversa con Momo como si fueras un cliente. Si responde bien, toca <b>Bien</b>; si no, toca <b>Corregir</b> y escribe cómo debió responder: queda guardado. Lo que no sepa lo anotará en <b>Dudas</b> para que se lo enseñes.</p>
+        <TrainMomo aiReady={isAiConfigured()} />
+      </div>
     )
   } else if (tab === 'politicas') {
     const policies = await listPolicies(session, q)
@@ -208,7 +207,7 @@ export default async function ConocimientoPage({ searchParams }: { searchParams:
   return (
     <div className="space-y-5">
       <PageTitle title="Lo que Momo sabe" description="Todo lo que Momo usa para responder a tus clientes, sin inventar."
-        actions={<ButtonLink href="/conocimiento?t=probar" variant="primary"><Sparkles className="h-4 w-4" aria-hidden />Probar a Momo</ButtonLink>} />
+        actions={<ButtonLink href="/conocimiento?t=probar" variant="primary"><Sparkles className="h-4 w-4" aria-hidden />Entrenar a Momo</ButtonLink>} />
       <Tabs label="Secciones" active={tab} items={TABS.map((t) => ({
         id: t.id, label: t.label, href: `/conocimiento?t=${t.id}`,
         count: t.id === 'politicas' ? counts.politicas : t.id === 'productos' ? counts.productos : t.id === 'dudas' ? counts.dudas : undefined,
