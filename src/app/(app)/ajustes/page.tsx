@@ -161,7 +161,7 @@ export default async function AjustesPage({ searchParams }: { searchParams: Prom
         <div className={cn('rounded-3xl p-4 text-sm', isAiConfigured() ? 'bg-success-soft text-success' : 'bg-accent-soft text-accent-strong')}>
           {isAiConfigured()
             ? <><strong>Inteligencia de Momo activa.</strong> Las sugerencias y “Probar a Momo” están funcionando.</>
-            : <><strong>Inteligencia de Momo pendiente.</strong> Para activar las sugerencias, el dueño de la plataforma debe agregar la clave de la API de Claude (ANTHROPIC_API_KEY) en Vercel como variable Sensitive y volver a publicar.</>}
+            : <><strong>Inteligencia de Momo pendiente.</strong> Para activar las sugerencias, el dueño de la plataforma debe agregar la clave de Claude (ANTHROPIC_API_KEY) o de Gemini (GEMINI_API_KEY) en Vercel como variable Sensitive y volver a publicar.</>}
         </div>
         {pendingPlan && <p className="rounded-3xl bg-brand-50 p-4 text-sm font-semibold text-brand-700">Pediste cambiar al plan {findPlan(pendingPlan.detail).name} el {formatShortDate(pendingPlan.created_at)}. Te contactaremos pronto.</p>}
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

@@ -1,9 +1,8 @@
 import 'server-only'
-import { betaZodTool } from '@anthropic-ai/sdk/helpers/beta/zod'
 import { z } from 'zod'
 import { canEdit, type Session } from '@/lib/session'
 import { describeHits, searchCatalog } from './catalog'
-import { DEFAULT_MODEL, FALLBACK, anthropic, consume, textOf } from './runtime'
+import { defineTool, runAgent } from './engine'
 
 /**
  * Asistente interno para el equipo (Rachel, el dueño): explica cómo usar Momo y hace
@@ -40,7 +39,7 @@ Hablas con el equipo de la empresa (dueños y vendedores), no con clientes final
 
 Qué hay en la app:
 - Hoy: resumen del día, clientes que te esperan, ventas de la semana y lo que Momo aprendió.
-- Conversaciones: cada chat con su venta al lado (pasos Pregunta → Cotizado → Pagado → Despachado). Por ahora los chats de Marketplace se registran a mano: se pega lo que escribió el cliente, Momo sugiere la respuesta y se copia para pegarla en Marketplace. "Pasar al Área de Diseño" deriva proyectos a medida.
+- Conversaciones: cada chat con su venta al lado (pasos Pregunta → Cotizado → Pagado → Despachado). Por ahora los chats de Marketplace se registran a mano: se pega lo que escribió el cliente, con \"Momo atiende\" activado Momo responde solo; si no, sugiere la respuesta y se copia para pegarla en Marketplace. "Pasar al Área de Diseño" deriva proyectos a medida.
 - Clientes: ficha de cada cliente con sus conversaciones y compras; se puede exportar a Excel.
 - Lo que Momo sabe: políticas del negocio, productos, dudas que Momo no supo responder y su personalidad (con "Probar a Momo").
 - Resultados: ventas, conversaciones y canales por periodo.
@@ -58,27 +57,27 @@ export async function runTeamAssistant(session: Session, history: AssistantTurn[
   const actions: AssistantAction[] = []
   const { db, org } = session
 
-  const buscarProductos = betaZodTool({
+  const buscarProductos = defineTool({
     name: 'buscar_productos',
     description: 'Busca productos del catálogo de la empresa por texto. Devuelve hasta 8 con precio y oferta.',
-    inputSchema: z.object({ consulta: z.string().min(1).max(120).describe('Texto a buscar, por ejemplo "cocina con horno"') }),
+    schema: z.object({ consulta: z.string().min(1).max(120).describe('Texto a buscar, por ejemplo "cocina con horno"') }),
     run: async ({ consulta }) => describeHits(consulta, await searchCatalog(session, consulta)),
   })
 
-  const verConocimiento = betaZodTool({
+  const verConocimiento = defineTool({
     name: 'ver_conocimiento',
     description: 'Lista las políticas y datos del negocio que Momo ya conoce.',
-    inputSchema: z.object({}),
+    schema: z.object({}),
     run: async () => {
       const { data } = await db.from('knowledge_entries').select('title, content').eq('organization_id', org.id).order('created_at').limit(80)
       return data?.length ? data.map((e) => `- ${e.title}: ${e.content}`).join('\n') : 'Aún no hay políticas cargadas.'
     },
   })
 
-  const agregarConocimiento = betaZodTool({
+  const agregarConocimiento = defineTool({
     name: 'agregar_conocimiento',
     description: 'Guarda una nueva política o dato del negocio. Solo después de que la persona confirme el texto.',
-    inputSchema: z.object({
+    schema: z.object({
       titulo: z.string().min(3).max(80).describe('Título corto, por ejemplo "Despacho a regiones"'),
       contenido: z.string().min(10).max(2000).describe('Texto completo que leerá Momo vendedor'),
     }),
@@ -92,32 +91,25 @@ export async function runTeamAssistant(session: Session, history: AssistantTurn[
     },
   })
 
-  const irA = betaZodTool({
+  const irA = defineTool({
     name: 'ir_a',
     description: 'Lleva a la persona a una pantalla de la app.',
-    inputSchema: z.object({ pantalla: z.enum(Object.keys(ROUTES) as [keyof typeof ROUTES, ...(keyof typeof ROUTES)[]]) }),
+    schema: z.object({ pantalla: z.enum(Object.keys(ROUTES) as [keyof typeof ROUTES, ...(keyof typeof ROUTES)[]]) }),
     run: async ({ pantalla }) => {
       actions.push({ type: 'navigate', href: ROUTES[pantalla], label: `Ir a ${pantalla.replace(/_/g, ' ')}` })
       return `Listo, se mostrará el botón para ir a ${pantalla}.`
     },
   })
 
-  const runner = anthropic().beta.messages.toolRunner({
-    model: DEFAULT_MODEL,
-    max_tokens: 16000,
-    // Chat de ayuda: esfuerzo bajo para respuestas rápidas y económicas.
-    output_config: { effort: 'low' },
-    ...FALLBACK,
-    betas: [...FALLBACK.betas],
-    max_iterations: 6,
-    system: SYSTEM,
+  // Chat de ayuda: esfuerzo bajo para respuestas rápidas y económicas.
+  const result = await runAgent(session, {
+    feature: 'asistente_interno', system: SYSTEM, effort: 'low',
     tools: [buscarProductos, verConocimiento, agregarConocimiento, irA],
-    messages: history.map((t) => ({ role: t.role, content: t.text })),
+    messages: history,
   })
-  const final = await consume(session, 'asistente_interno', runner)
 
-  if (final?.stop_reason === 'refusal') {
+  if (result.refused) {
     return { reply: 'No puedo ayudarte con eso. Pregúntame por el uso de la app, tus productos o lo que sabe Momo.', actions }
   }
-  return { reply: textOf(final) || 'Listo.', actions }
+  return { reply: result.text || 'Listo.', actions }
 }

@@ -62,7 +62,7 @@ export function ConversationView({ conversation, backHref, aiReady, editable }: 
               <input type="hidden" name="conversation_id" value={conversation.id} />
               <input type="hidden" name="enabled" value={conversation.ai_enabled ? 'false' : 'true'} />
               <button type="submit" role="switch" aria-checked={conversation.ai_enabled}
-                title={conversation.ai_enabled ? 'Cuando el canal esté conectado, Momo responderá solo' : 'La conversación queda en "Te esperan" hasta que respondas'}
+                title={conversation.ai_enabled ? 'Momo responde solo cada mensaje del cliente' : 'La conversación queda en "Te esperan" hasta que respondas'}
                 className={cn('inline-flex min-h-10 items-center gap-2 whitespace-nowrap rounded-full px-3 text-sm font-extrabold',
                   conversation.ai_enabled ? 'bg-accent-soft text-accent-strong' : 'bg-brand-50 text-brand-700')}>
                 <span className={cn('relative h-5 w-9 shrink-0 rounded-full transition', conversation.ai_enabled ? 'bg-accent-strong' : 'bg-brand-200')} aria-hidden>

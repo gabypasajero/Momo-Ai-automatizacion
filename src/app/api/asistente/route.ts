@@ -16,7 +16,7 @@ const Body = z.object({
 export async function POST(request: NextRequest) {
   if (!isAiConfigured()) {
     // 200 con aviso: es un estado esperado (IA sin activar), no un error del servidor.
-    return NextResponse.json({ error: 'sin-clave', reply: 'Todavía no tengo conectada mi inteligencia (falta la clave de la API de Claude). Mientras tanto, usa los atajos de abajo.' })
+    return NextResponse.json({ error: 'sin-clave', reply: 'Todavía no tengo conectada mi inteligencia (falta la clave de Claude o de Gemini). Mientras tanto, usa los atajos de abajo.' })
   }
 
   const parsed = Body.safeParse(await request.json().catch(() => null))

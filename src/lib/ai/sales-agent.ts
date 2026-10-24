@@ -1,15 +1,16 @@
 import 'server-only'
-import { betaZodTool } from '@anthropic-ai/sdk/helpers/beta/zod'
 import { z } from 'zod'
 import { CHANNELS, type Channel } from '@/config/sales'
 import { formatClp } from '@/lib/format'
 import type { Session } from '@/lib/session'
 import { describeHits, searchCatalog } from './catalog'
-import { FALLBACK, anthropic, consume, modelFor, textOf } from './runtime'
+import { defineTool, runAgent } from './engine'
+import { modelFor } from './runtime'
 
 /**
  * Momo vendedor: escribe la próxima respuesta para el cliente final con el catálogo y las
- * políticas reales de la empresa. Una persona la revisa antes de enviarla (modo copiloto).
+ * políticas reales de la empresa. En las conversaciones con "Momo atiende" responde solo
+ * (autoReply); en el resto sugiere y una persona decide.
  * Lo que no sabe lo registra como "duda" para que el equipo se lo enseñe.
  */
 
@@ -42,7 +43,7 @@ async function businessPrompt(session: Session) {
   const system = `${assistant.data?.system_prompt || `Eres Momo, el asistente de ventas de ${org.name}.`}
 
 ## Cómo trabajas en Momo
-- Escribes la próxima respuesta para el cliente. Una persona del equipo la revisa y la envía.
+- Escribes la próxima respuesta para el cliente y se le envía tal cual: eres tú quien atiende.
 - Responde SOLO con el texto del mensaje para el cliente: sin comillas, sin explicaciones, sin notas internas.
 - Español de Chile, cálido y breve (1 a 4 frases). Pocos emojis.
 - Para precios, medidas y productos usa buscar_productos. Nunca inventes precios, medidas, plazos, stock ni políticas.
@@ -74,17 +75,17 @@ export type ReplyResult = { text: string; error?: undefined } | { error: string;
 async function reply(session: Session, ctx: Context, { allowGaps }: { allowGaps: boolean }): Promise<ReplyResult> {
   const { system, model } = await businessPrompt(session)
 
-  const buscarProductos = betaZodTool({
+  const buscarProductos = defineTool({
     name: 'buscar_productos',
     description: 'Busca productos del catálogo por texto (nombre, categoría, medidas, diseño). Devuelve hasta 8 con precio y oferta.',
-    inputSchema: z.object({ consulta: z.string().min(1).max(120) }),
+    schema: z.object({ consulta: z.string().min(1).max(120) }),
     run: async ({ consulta }) => describeHits(consulta, await searchCatalog(session, consulta)),
   })
 
-  const registrarDuda = betaZodTool({
+  const registrarDuda = defineTool({
     name: 'registrar_duda',
     description: 'Anota una pregunta del cliente que no puedes responder con el catálogo ni las políticas, para que el equipo te la enseñe.',
-    inputSchema: z.object({ pregunta: z.string().min(5).max(300).describe('La pregunta, escrita de forma general (sin datos personales)') }),
+    schema: z.object({ pregunta: z.string().min(5).max(300).describe('La pregunta, escrita de forma general (sin datos personales)') }),
     run: async ({ pregunta }) => {
       const { db, org } = session
       const { data: existing } = await db.from('knowledge_gaps').select('id').eq('organization_id', org.id).eq('status', 'pendiente').ilike('question', pregunta.replace(/[%_]/g, ' ')).limit(1)
@@ -95,20 +96,13 @@ async function reply(session: Session, ctx: Context, { allowGaps }: { allowGaps:
     },
   })
 
-  const runner = anthropic().beta.messages.toolRunner({
-    model,
-    max_tokens: 16000,
-    output_config: { effort: 'medium' },
-    ...FALLBACK,
-    betas: [...FALLBACK.betas],
-    max_iterations: 6,
-    system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
+  const result = await runAgent(session, {
+    feature: 'vendedor', system, claudeModel: model, effort: 'medium',
     tools: allowGaps ? [buscarProductos, registrarDuda] : [buscarProductos],
-    messages: [{ role: 'user', content: transcriptText(ctx) }],
+    messages: [{ role: 'user', text: transcriptText(ctx) }],
   })
-  const final = await consume(session, 'vendedor', runner)
-  if (final?.stop_reason === 'refusal') return { error: 'Momo no puede responder este mensaje. Respóndelo tú.' }
-  const text = textOf(final)
+  if (result.refused) return { error: 'Momo no puede responder este mensaje. Respóndelo tú.' }
+  const text = result.text
   return text ? { text } : { error: 'Momo no encontró qué responder. Intenta de nuevo.' }
 }
 
@@ -141,4 +135,21 @@ export async function testReply(session: Session, question: string) {
     channel: 'marketplace', customer: 'un cliente de prueba', comuna: null, sale: null,
     messages: [{ author: 'client', body: question }], conversationId: null,
   }, { allowGaps: false })
+}
+
+/**
+ * Modo automático: si la conversación tiene "Momo atiende", Momo escribe y guarda su respuesta
+ * apenas llega un mensaje del cliente. Nunca lanza error: si falla, la conversación queda en
+ * "Te esperan" para que responda una persona.
+ */
+export async function autoReply(session: Session, conversationId: string) {
+  try {
+    const { data } = await session.db.from('conversations').select('ai_enabled, status').eq('organization_id', session.org.id).eq('id', conversationId).maybeSingle()
+    if (!data?.ai_enabled || data.status === 'closed') return
+    const result = await suggestReply(session, conversationId)
+    if (!result.text) return
+    await session.db.from('messages').insert({ organization_id: session.org.id, conversation_id: conversationId, author: 'ai', body: result.text })
+  } catch (error) {
+    console.error('Momo automático: no pudo responder', error)
+  }
 }
