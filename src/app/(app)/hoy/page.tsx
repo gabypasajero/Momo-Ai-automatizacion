@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Mascot } from '@/components/brand'
 import { InstallApp } from '@/components/pwa/InstallApp'
+import { PhoneHome } from '@/features/telefono/PhoneHome'
 import { ButtonLink, Card, CardTitle, EmptyState, SearchForm } from '@/components/ui'
 import { GapCard } from '@/features/conocimiento/GapCard'
 import { ConversationRow } from '@/features/conversaciones/ConversationList'
@@ -38,7 +39,8 @@ export default async function HoyPage() {
   return (
     <div className="space-y-6">
       <InstallApp variant="banner" />
-      <header className="flex flex-wrap items-end gap-4">
+      <PhoneHome name={session.user.name} waiting={waitingCount} sold={summary.sold} editable={editable} detail={say.detail} />
+      <header className="hidden flex-wrap items-end gap-4 md:flex">
         <div className="min-w-0 flex-[1_1_320px]">
           <p className="font-semibold text-muted">{formatToday()}</p>
           <h1 className="font-display text-[28px] font-bold leading-tight md:text-[32px]">{greeting()}, {firstName(session.user.name)}</h1>
@@ -46,7 +48,7 @@ export default async function HoyPage() {
         <SearchForm action="/buscar" placeholder="Busca un cliente, producto o pedido" className="flex-[0_1_380px]" />
       </header>
 
-      <section aria-label="Resumen de Momo" className="flex flex-wrap items-center gap-5 rounded-3xl bg-brand-600 p-6 text-white">
+      <section aria-label="Resumen de Momo" className="hidden flex-wrap md:flex items-center gap-5 rounded-3xl bg-brand-600 p-6 text-white">
         <span className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full bg-brand-50"><Mascot className="h-16 w-16" title="" /></span>
         <div className="min-w-0 flex-[1_1_320px]">
           <p className="font-display text-xl font-bold">{say.headline}</p>

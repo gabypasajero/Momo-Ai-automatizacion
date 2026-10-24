@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/lib/env'
 
-const PUBLIC_PATHS = ['/login', '/auth', '/recuperar']
+const PUBLIC_PATHS = ['/login', '/auth', '/recuperar', '/api/avisos', '/admin-app.webmanifest']
 
 /** Refresca la sesión en cada request y envía al login a quien no la tenga. */
 export async function updateSession(request: NextRequest) {

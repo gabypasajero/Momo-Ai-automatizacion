@@ -7,13 +7,14 @@ import { CHANNELS, CHANNEL_IDS } from '@/config/sales'
 import { createConversation, searchContacts, type ContactOption } from './actions'
 
 /** Registrar una conversación nueva: cliente existente o nuevo, canal y lo que escribió. */
-export function NewConversation({ defaultContact, triggerLabel = 'Nueva conversación', triggerVariant = 'primary' }: {
+export function NewConversation({ defaultContact, triggerLabel = 'Nueva conversación', triggerVariant = 'primary', triggerClassName }: {
   defaultContact?: ContactOption
   triggerLabel?: string
   triggerVariant?: 'primary' | 'secondary'
+  triggerClassName?: string
 }) {
   return (
-    <Modal trigger={<><Plus className="h-4 w-4" aria-hidden />{triggerLabel}</>} triggerVariant={triggerVariant} size="lg"
+    <Modal trigger={<><Plus className="h-4 w-4" aria-hidden />{triggerLabel}</>} triggerVariant={triggerVariant} triggerClassName={triggerClassName} size="lg"
       title="Registrar conversación"
       description="Pega lo que te escribió el cliente en Marketplace u otro canal. Momo te ayudará a responder.">
       <ActionForm action={createConversation} className="space-y-4">

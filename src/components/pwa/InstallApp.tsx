@@ -7,7 +7,7 @@ type PromptEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ 
 const DISMISS_KEY = 'momo_instalar_oculto'
 
 /** Registra el service worker y ofrece instalar Momo en la pantalla de inicio del teléfono. */
-export function InstallApp({ variant = 'card' }: { variant?: 'card' | 'banner' }) {
+export function InstallApp({ variant = 'card', name = 'Momo' }: { variant?: 'card' | 'banner'; name?: string }) {
   const [prompt, setPrompt] = useState<PromptEvent | null>(null)
   const [ios, setIos] = useState(false)
   const [installed, setInstalled] = useState(true)
@@ -39,17 +39,17 @@ export function InstallApp({ variant = 'card' }: { variant?: 'card' | 'banner' }
   const dismiss = () => { setHidden(true); try { localStorage.setItem(DISMISS_KEY, '1') } catch {} }
 
   return (
-    <section aria-label="Instalar Momo en tu teléfono" className="relative rounded-3xl border border-brand-200 bg-brand-50 p-5 md:hidden">
+    <section aria-label={`Instalar ${name} en tu teléfono`} className="relative rounded-3xl border border-brand-200 bg-brand-50 p-5 md:hidden">
       {variant === 'banner' && (
         <button type="button" onClick={dismiss} aria-label="Ocultar aviso" className="absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-full hover:bg-white">
           <X className="h-5 w-5" aria-hidden />
         </button>
       )}
-      <h2 className="pr-10 text-lg font-extrabold">Ten Momo en tu teléfono</h2>
+      <h2 className="pr-10 text-lg font-extrabold">Ten {name} en tu teléfono</h2>
       <p className="mt-1 text-base text-muted">Ábrelo con un toque, como cualquier otra app. No ocupa espacio.</p>
       {prompt ? (
         <button type="button" onClick={install} className="mt-4 inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-brand-600 px-6 text-lg font-extrabold text-white">
-          <Download className="h-6 w-6" aria-hidden />Instalar Momo
+          <Download className="h-6 w-6" aria-hidden />Instalar {name}
         </button>
       ) : (
         <ol className="mt-4 space-y-3 text-base">
@@ -58,7 +58,7 @@ export function InstallApp({ variant = 'card' }: { variant?: 'card' | 'banner' }
           <li className="flex items-center gap-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-600 font-extrabold text-white">2</span>
             <span>Elige <SquarePlus className="inline h-5 w-5 align-text-bottom" aria-hidden /> <b>Agregar a inicio</b>.</span></li>
           <li className="flex items-center gap-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-600 font-extrabold text-white">3</span>
-            <span>Toca <b>Agregar</b>. ¡Listo! Momo queda junto a tus apps.</span></li>
+            <span>Toca <b>Agregar</b>. ¡Listo! {name} queda junto a tus apps.</span></li>
         </ol>
       )}
     </section>

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { NavIcon } from '@/components/layout/NavIcon'
 import { OrgSwitcher } from '@/components/layout/OrgSwitcher'
 import { InstallApp } from '@/components/pwa/InstallApp'
+import { PushToggle } from '@/features/avisos/PushToggle'
 import { Avatar, PageTitle } from '@/components/ui'
 import { ROLE_LABELS } from '@/config/sales'
 import { signOut, switchOrg } from '@/features/auth/actions'
@@ -36,6 +37,7 @@ export default async function MasPage() {
       </div>
       <InstallApp />
       <TextSize initial={big} />
+      <PushToggle />
       {orgs.length > 1 && <OrgSwitcher current={session.org.id} orgs={orgs} action={switchOrg} />}
       <ul className="space-y-2">
         {LINKS.map((l) => (
