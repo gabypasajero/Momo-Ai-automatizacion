@@ -35,8 +35,5 @@ export async function POST(request: Request) {
     }
   }))
 
-  if (gone.length) {
-    await db.rpc('avisos_borrar', { p_secret: secret, p_endpoints: gone })
-  }
-  return NextResponse.json({ sent: (data.subscriptions?.length ?? 0) - gone.length, removed: gone.length })
+  return NextResponse.json({ sent: (data.subscriptions?.length ?? 0) - gone.length, expired: gone.length })
 }
