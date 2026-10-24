@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { NavIcon } from '@/components/layout/NavIcon'
 import { OrgSwitcher } from '@/components/layout/OrgSwitcher'
+import { InstallApp } from '@/components/pwa/InstallApp'
 import { Avatar, PageTitle } from '@/components/ui'
 import { ROLE_LABELS } from '@/config/sales'
 import { signOut, switchOrg } from '@/features/auth/actions'
@@ -30,6 +31,7 @@ export default async function MasPage() {
         <Avatar name={session.user.name} className="bg-brand-600 text-white" />
         <div className="min-w-0"><p className="truncate font-extrabold">{session.user.name}</p><p className="text-sm text-muted">{ROLE_LABELS[session.role]} · {session.org.name}</p></div>
       </div>
+      <InstallApp />
       {orgs.length > 1 && <OrgSwitcher current={session.org.id} orgs={orgs} action={switchOrg} />}
       <ul className="space-y-2">
         {LINKS.map((l) => (

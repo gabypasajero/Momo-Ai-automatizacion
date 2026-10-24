@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Mascot } from '@/components/brand'
+import { InstallApp } from '@/components/pwa/InstallApp'
 import { ButtonLink, Card, CardTitle, EmptyState, SearchForm } from '@/components/ui'
 import { GapCard } from '@/features/conocimiento/GapCard'
 import { ConversationRow } from '@/features/conversaciones/ConversationList'
@@ -36,6 +37,7 @@ export default async function HoyPage() {
 
   return (
     <div className="space-y-6">
+      <InstallApp variant="banner" />
       <header className="flex flex-wrap items-end gap-4">
         <div className="min-w-0 flex-[1_1_320px]">
           <p className="font-semibold text-muted">{formatToday()}</p>
