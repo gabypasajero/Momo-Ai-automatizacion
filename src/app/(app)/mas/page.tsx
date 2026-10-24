@@ -1,3 +1,5 @@
+import { cookies } from 'next/headers'
+import { TextSize } from '@/components/prefs/TextSize'
 import { ChevronRight, LogOut } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -19,6 +21,7 @@ const LINKS = [
 
 /** Menú "Más" del celular: lo que no cabe en la barra inferior. */
 export default async function MasPage() {
+  const big = (await cookies()).get('momo_letra')?.value === 'grande'
   const session = await getSession()
   const admin = await isPlatformAdmin()
   const orgs = session.memberships.map((m) => ({ id: m.organization.id, name: m.organization.name }))
@@ -32,6 +35,7 @@ export default async function MasPage() {
         <div className="min-w-0"><p className="truncate font-extrabold">{session.user.name}</p><p className="text-sm text-muted">{ROLE_LABELS[session.role]} · {session.org.name}</p></div>
       </div>
       <InstallApp />
+      <TextSize initial={big} />
       {orgs.length > 1 && <OrgSwitcher current={session.org.id} orgs={orgs} action={switchOrg} />}
       <ul className="space-y-2">
         {LINKS.map((l) => (

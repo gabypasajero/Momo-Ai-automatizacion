@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Nunito, Quicksand } from 'next/font/google'
+import { cookies } from 'next/headers'
 import './globals.css'
 
 // Mismas tipografías que detoditooutlet.cl: Nunito para texto y Quicksand para títulos.
@@ -16,9 +17,10 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { themeColor: '#A8325E', width: 'device-width', initialScale: 1, viewportFit: 'cover' }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const big = (await cookies()).get('momo_letra')?.value === 'grande'
   return (
-    <html lang="es-CL">
+    <html lang="es-CL" className={big ? 'letra-grande' : undefined}>
       <body className={`${nunito.variable} ${quicksand.variable} font-sans`}>{children}</body>
     </html>
   )
