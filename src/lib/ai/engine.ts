@@ -30,7 +30,8 @@ export interface ToolSpec<S extends z.ZodObject = z.ZodObject> {
 }
 export const defineTool = <S extends z.ZodObject>(t: ToolSpec<S>) => t as unknown as ToolSpec
 
-export interface AgentTurn { role: 'user' | 'assistant'; text: string }
+export interface AgentImage { mediaType: 'image/jpeg' | 'image/png' | 'image/webp'; data: string }
+export interface AgentTurn { role: 'user' | 'assistant'; text: string; images?: AgentImage[] }
 
 interface AgentOptions {
   feature: 'asistente_interno' | 'vendedor'
@@ -60,7 +61,12 @@ async function runClaude(session: Session, o: AgentOptions): Promise<AgentResult
     max_iterations: 6,
     system: [{ type: 'text', text: o.system, cache_control: { type: 'ephemeral' } }],
     tools: o.tools.map((t) => betaZodTool({ name: t.name, description: t.description, inputSchema: t.schema, run: t.run })),
-    messages: o.messages.map((m) => ({ role: m.role, content: m.text })),
+    messages: o.messages.map((m) => ({
+      role: m.role,
+      content: m.images?.length
+        ? [...m.images.map((img) => ({ type: 'image' as const, source: { type: 'base64' as const, media_type: img.mediaType, data: img.data } })), { type: 'text' as const, text: m.text }]
+        : m.text,
+    })),
   })
   const final = await consume(session, o.feature, runner)
   return { text: textOf(final), refused: final?.stop_reason === 'refusal' }
@@ -70,7 +76,7 @@ async function runClaude(session: Session, o: AgentOptions): Promise<AgentResult
 // Gemini (API REST de Google AI Studio, sin librerías extra)
 // ---------------------------------------------------------------------------
 
-type GeminiPart = { text?: string; functionCall?: { name: string; args?: Record<string, unknown> }; functionResponse?: { name: string; response: Record<string, unknown> } }
+type GeminiPart = { text?: string; inlineData?: { mimeType: string; data: string }; functionCall?: { name: string; args?: Record<string, unknown> }; functionResponse?: { name: string; response: Record<string, unknown> } }
 type GeminiContent = { role: 'user' | 'model'; parts: GeminiPart[] }
 
 export class GeminiError extends Error {
@@ -91,7 +97,10 @@ function geminiSchema(schema: z.ZodObject) {
 }
 
 async function runGemini(session: Session, o: AgentOptions): Promise<AgentResult> {
-  const contents: GeminiContent[] = o.messages.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.text }] }))
+  const contents: GeminiContent[] = o.messages.map((m) => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [...(m.images ?? []).map((img) => ({ inlineData: { mimeType: img.mediaType, data: img.data } })), { text: m.text }],
+  }))
   const declarations = o.tools.map((t) => ({ name: t.name, description: t.description, parametersJsonSchema: geminiSchema(t.schema) }))
   let inputTokens = 0, outputTokens = 0, text = '', refused = false
 
