@@ -10,7 +10,7 @@ export function ProductPhotos({ photos }: { photos: ProductPhoto[] }) {
       {photos.map((p) => (
         <li key={p.image} className="w-40 overflow-hidden rounded-2xl border border-line bg-white">
           {/* eslint-disable-next-line @next/next/no-img-element -- fotos del catálogo en otro dominio */}
-          <img src={p.image} alt={p.name} loading="lazy" className="aspect-square w-full bg-surface object-cover" />
+          <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="aspect-square w-full bg-surface object-cover" />
           <div className="space-y-0.5 p-2">
             <p className="line-clamp-2 text-xs font-bold leading-snug">{p.name}</p>
             <p className="text-xs text-muted">{formatClp(p.price)}</p>
