@@ -195,8 +195,44 @@ async function reply(session: Session, ctx: Context, { allowGaps }: { allowGaps:
       photos.push({ name: hit.name, image: hit.image_url!, url: hit.source_url, price: hit.sale_price_clp ?? hit.price_clp })
     }
   }
-  const text = result.text.replace(/\s*\[foto:\s*[0-9a-f]+\]/gi, '').replace(/\n{3,}/g, '\n\n').trim()
+  // Diseños (regla de DTO): con imagen del cliente se arma la vista previa aunque el modelo no use la herramienta;
+  // sin imagen, se invita una sola vez a mandar la imagen referencial.
+  const clientText = ctx.messages.filter((m) => m.author === 'client').map((m) => m.body ?? '').join('\n')
+  const lastHasPhoto = [...ctx.messages].reverse().find((m) => m.author === 'client')?.photo === true
+  const modelo = guessModel(clientText)
+  let extra = ''
+  if (lastHasPhoto && (ctx.images?.length ?? 0) > 0 && designs.length === 0 && modelo) {
+    const m = MODELOS.find((x) => x.id === modelo)!
+    const { data } = await session.db.from('products').select('price_clp, sale_price_clp, name').eq('organization_id', session.org.id).eq('active', true).ilike('name', `${m.prefijo}%`).limit(5)
+    const prod = (data ?? []).find((p) => /personalizable/i.test(String(p.name))) ?? data?.[0]
+    designs.push({ modelo, nombre: guessName(clientText), conFoto: true, precio: prod ? (prod.sale_price_clp ?? prod.price_clp) as number : null })
+    if (!/vista|diseño/i.test(result.text)) extra = '\n\nTe dejo un diseño genérico de cómo se vería en las puertas y cajones (es una vista referencial) ✨'
+  }
+  const wantsCustom = /nombre|personaliz|diseñ|personaje|stitch|minnie|mickey|frozen|spider|imagen|foto/i.test(lastClient)
+  const alreadyInvited = ctx.messages.some((m) => m.author === 'ai' && /imagen referencial/i.test(m.body ?? ''))
+  if (!lastHasPhoto && designs.length === 0 && wantsCustom && modelo && !alreadyInvited && !/imagen referencial/i.test(result.text)) {
+    extra = '\n\nSi me envías una imagen referencial del diseño que quieres, te muestro un diseño genérico de cómo se vería en las puertas y cajones, con el nombre incluido 😊'
+  }
+  const text = (result.text + extra).replace(/\s*\[foto:\s*[0-9a-f]+\]/gi, '').replace(/\n{3,}/g, '\n\n').trim()
   return text ? { text, gaps, photos, designs } : { error: 'Momo no encontró qué responder. Intenta de nuevo.', gaps }
+}
+
+/** Modelo del diseñador según lo que pidió el cliente (el más reciente manda). */
+function guessModel(text: string) {
+  const t = text.toLowerCase().split('\n').reverse().join('\n')
+  const rules: [RegExp, string][] = [
+    [/c[oó]moda[^\n]*13/, 'comoda13'], [/c[oó]moda[^\n]*7/, 'comoda7'], [/mudador/, 'mudador'], [/c[oó]moda/, 'comoda4'],
+    [/velador|comod[ií]n/, 'velador'], [/escritorio/, 'escritorio'], [/\bxl\b|5 puertas/, 'closetxl'], [/4 puertas/, 'closet4'],
+    [/3 puertas[^\n]*8/, 'closet38'], [/3 puertas/, 'closet3'], [/2 puertas/, 'closet2'], [/cl[oó]set/, 'closet3'],
+  ]
+  for (const line of t.split('\n')) for (const [re, id] of rules) if (re.test(line)) return id
+  return null
+}
+
+/** Nombre que el cliente pidió poner en el mueble ("con el nombre Sofía"). */
+function guessName(text: string) {
+  const match = /nombre\s+(?:de\s+)?(?:mi\s+\w+\s+)?([A-ZÁÉÍÓÚÑ][a-záéíóúñü]{1,17})/.exec(text)
+  return match?.[1]
 }
 
 /** Sugerencia de respuesta para una conversación registrada. */
