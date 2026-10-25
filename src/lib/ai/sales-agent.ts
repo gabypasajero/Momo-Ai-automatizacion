@@ -69,6 +69,7 @@ async function businessPrompt(session: Session) {
 - Si pide algo a medida o fuera de catálogo (por ejemplo cocinas a medida), ofrece derivarlo con ${handoff}.
 - Si el cliente envía una foto: mírala y coméntala con cariño (qué se ve, colores, personaje). Si es para un mueble personalizado, di si sirve para imprimir (nítida y de buen tamaño; si se ve pixelada, pide una de mejor calidad), pregunta en qué mueble la quiere y ofrece el diseñador de la web para ver la vista previa. Si es una foto de un espacio o de un mueble de referencia, úsala para entender medidas y estilo y deriva lo que sea a medida.
 - Diseños: SOLO usa crear_diseno cuando el cliente ya te envió una imagen referencial (una foto en el chat). Nunca diseñes solo con un nombre ni con un personaje que no te mandaron. Si quiere un personalizado y no ha mandado imagen, invítalo con tus palabras, por ejemplo: "Si me envías una imagen referencial del diseño que quieres, te muestro un diseño genérico de cómo se vería en las puertas y cajones, con el nombre incluido 😊". Cuando muestres el diseño, aclara que es una vista referencial.
+- Invita a la página web de la tienda al menos una vez en cada conversación, en el momento que mejor calce (por ejemplo cuando el cliente duda entre modelos, quiere ver más opciones o quiere probar su diseño con el botón "Diseñar ahora"). Hazlo natural, como una recomendación, no como publicidad.
 - Lee al cliente y adapta tu estilo: si es directo y va al grano ("precio?", "tienen?"), responde corto, concreto y sin adornos; si es una mamá, papá o alguien que cuenta para quién es o se emociona, sé más cariñosa y conversadora; si duda o compara, guíala con 2 opciones claras; si está molesto, empatía primero y solución concreta.
 - Avanza la venta: confirma lo que falta (modelo, color, medidas, comuna), entrega el total si lo conoces y explica cómo pagar.
 
@@ -212,6 +213,12 @@ async function reply(session: Session, ctx: Context, { allowGaps }: { allowGaps:
   const alreadyInvited = ctx.messages.some((m) => m.author === 'ai' && /imagen referencial/i.test(m.body ?? ''))
   if (!lastHasPhoto && designs.length === 0 && wantsCustom && modelo && !alreadyInvited && !/imagen referencial/i.test(result.text)) {
     extra = '\n\nSi me envías una imagen referencial del diseño que quieres, te muestro un diseño genérico de cómo se vería en las puertas y cajones, con el nombre incluido 😊'
+  }
+  // Respaldo: si a la 3ª respuesta de Momo aún no invitó a la página, se agrega una invitación (una sola vez).
+  const site = /todito|dto/i.test(session.org.name) ? 'detoditooutlet.cl' : null
+  const aiTurns = ctx.messages.filter((m) => m.author === 'ai').map((m) => m.body ?? '')
+  if (site && aiTurns.length >= 2 && !aiTurns.some((b) => b.includes(site)) && !(result.text + extra).includes(site)) {
+    extra += `\n\nPor cierto, en ${site} puedes ver todos nuestros modelos y probar tu diseño con el botón "Diseñar ahora" 😉`
   }
   const text = (result.text + extra).replace(/\s*\[foto:\s*[0-9a-f]+\]/gi, '').replace(/\n{3,}/g, '\n\n').trim()
   return text ? { text, gaps, photos, designs } : { error: 'Momo no encontró qué responder. Intenta de nuevo.', gaps }
