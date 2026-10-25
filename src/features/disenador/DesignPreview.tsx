@@ -17,8 +17,15 @@ export function DesignPreview({ spec, photo }: { spec: DesignSpec; photo: string
   useEffect(() => {
     let cancel = false
     ;(async () => {
-      if (!document.querySelector(`link[href="${FUENTES}"]`)) {
-        const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = FUENTES; document.head.appendChild(l)
+      // Las letras del diseñador (Fredoka, Pacifico, Bangers) se cargan una vez y se espera a que estén listas.
+      let link = document.querySelector<HTMLLinkElement>(`link[href="${FUENTES}"]`)
+      if (!link) {
+        link = document.createElement('link'); link.rel = 'stylesheet'; link.href = FUENTES
+        const ready = new Promise((r) => { link!.onload = r; link!.onerror = r; setTimeout(r, 4000) })
+        document.head.appendChild(link)
+        await ready
+      } else if (!link.sheet) {
+        await new Promise((r) => { link!.addEventListener('load', r, { once: true }); setTimeout(r, 4000) })
       }
       await Promise.all(['700 40px Fredoka', '40px Pacifico', '40px Bangers'].map((f) => document.fonts.load(f).catch(() => null)))
       let img: HTMLImageElement | null = null
