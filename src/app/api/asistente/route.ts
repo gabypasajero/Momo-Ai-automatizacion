@@ -6,7 +6,7 @@ import { isAiConfigured } from '@/lib/env'
 import { NoOrganizationError, getSession } from '@/lib/session'
 
 export const runtime = 'nodejs'
-export const maxDuration = 60
+export const maxDuration = 120
 
 const Body = z.object({
   messages: z.array(z.object({ role: z.enum(['user', 'assistant']), text: z.string().min(1).max(2000) })).min(1).max(20),

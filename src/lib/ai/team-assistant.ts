@@ -73,6 +73,16 @@ ${owner
     ? 'Es dueño o administrador: puedes hablar de estrategia, resultados del negocio, ideas para vender más y mejoras para Momo.'
     : 'Es vendedor(a): enfócate en su día a día: a quién responder, a quién hacer seguimiento, cómo cerrar una venta difícil y cómo usar la app. Puedes compartir los números del equipo, pero sin entrar en decisiones de precios o del negocio.'}`
 
+  // Políticas reales del negocio: Momo Equipo no inventa características, precios ni condiciones.
+  const { data: knowledge } = await db.from('knowledge_entries').select('title, content').eq('organization_id', org.id).order('updated_at').limit(80)
+  const policies = (knowledge ?? []).map((k) => `- ${k.title}: ${k.content}`).join('\n') || 'Aún no hay políticas cargadas.'
+  const SYSTEM_FULL = `${SYSTEM}
+
+## Políticas del negocio (si dos se contradicen, manda la más reciente)
+${policies}
+
+Cuando propongas qué responderle a un cliente, usa solo lo que dicen estas políticas y el catálogo (buscar_productos). Nunca inventes materiales, medidas, cuotas, descuentos ni condiciones que no estén aquí.`
+
   const since = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString()
 
   const resumenNegocio = defineTool({
@@ -193,7 +203,7 @@ ${owner
 
   // Chat de ayuda: esfuerzo bajo para respuestas rápidas y económicas.
   const result = await runAgent(session, {
-    feature: 'asistente_interno', system: SYSTEM, effort: 'low',
+    feature: 'asistente_interno', system: SYSTEM_FULL, effort: 'low',
     tools: [buscarProductos, verConocimiento, agregarConocimiento, irA, resumenNegocio, clientesPendientes, aprendizajeMomo],
     messages: history,
   })

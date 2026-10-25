@@ -124,11 +124,13 @@ async function runGemini(session: Session, o: AgentOptions): Promise<AgentResult
     } = {}
     models: for (const model of [geminiModel, ...GEMINI_MODELS.filter((m) => m !== geminiModel)]) {
       for (let attempt = 0; attempt < 2; attempt++) {
+        // Tope de 30 s por llamada: si Gemini se cuelga, se trata como saturado y se prueba otra versión.
         res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY ?? '' },
           body,
-        })
+          signal: AbortSignal.timeout(30_000),
+        }).catch(() => new Response('{}', { status: 503 }))
         data = await res.json().catch(() => ({}))
         if (res.ok) { geminiModel = model; break models }
         if (res.status === 404) break
