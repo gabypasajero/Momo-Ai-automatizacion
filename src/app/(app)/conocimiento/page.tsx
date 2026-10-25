@@ -1,9 +1,9 @@
 import { Pencil, Plus, Sparkles, Trash2 } from 'lucide-react'
 import type { Metadata } from 'next'
 import { ActionForm, Badge, ButtonLink, CancelButton, Card, CardTitle, Checkbox, ConfirmAction, EmptyState, Input, Modal, PageTitle, SearchForm, SubmitButton, Tabs, TextArea, buttonClass } from '@/components/ui'
-import { addGap, deletePolicy, savePersonality, savePolicy, saveProduct, setProductActive } from '@/features/conocimiento/actions'
+import { addGap, deletePolicy, forgetMemory, savePersonality, savePolicy, saveProduct, setProductActive } from '@/features/conocimiento/actions'
 import { GapCard } from '@/features/conocimiento/GapCard'
-import { PRODUCTS_PAGE, getAssistant, knowledgeCounts, listGaps, listPolicies, listProducts, type Policy, type ProductRow } from '@/features/conocimiento/queries'
+import { PRODUCTS_PAGE, getAssistant, knowledgeCounts, listGaps, listMemory, listPolicies, listProducts, listTrainingSessions, type Policy, type ProductRow } from '@/features/conocimiento/queries'
 import { TrainMomo } from '@/features/conocimiento/TrainMomo'
 import { isAiConfigured } from '@/lib/env'
 import { formatClp, formatNumber, formatShortDate } from '@/lib/format'
@@ -11,9 +11,10 @@ import { canEdit, canManage, getSession } from '@/lib/session'
 
 export const metadata: Metadata = { title: 'Lo que Momo sabe' }
 
-type Tab = 'probar' | 'politicas' | 'productos' | 'dudas' | 'personalidad'
+type Tab = 'probar' | 'memoria' | 'politicas' | 'productos' | 'dudas' | 'personalidad'
 const TABS: { id: Tab; label: string }[] = [
   { id: 'probar', label: 'Entrenar a Momo' },
+  { id: 'memoria', label: 'Memoria' },
   { id: 'politicas', label: 'Políticas' },
   { id: 'productos', label: 'Productos' },
   { id: 'dudas', label: 'Dudas' },
@@ -68,6 +69,52 @@ export default async function ConocimientoPage({ searchParams }: { searchParams:
       <div className="mx-auto max-w-3xl space-y-3">
         <p className="text-sm text-muted">Conversa con Momo como si fueras un cliente. Si responde bien, toca <b>Bien</b>; si no, toca <b>Corregir</b> y escribe cómo debió responder: queda guardado. Lo que no sepa lo anotará en <b>Dudas</b> para que se lo enseñes.</p>
         <TrainMomo aiReady={isAiConfigured()} />
+      </div>
+    )
+  } else if (tab === 'memoria') {
+    const [memory, sessions] = await Promise.all([listMemory(session), listTrainingSessions(session)])
+    content = (
+      <div className="space-y-5">
+        <p className="max-w-3xl text-sm text-muted">Cada vez que en el entrenamiento tocas <b>Bien</b> o <b>Corregir</b>, la respuesta queda aquí. Momo usa las 25 más recientes como ejemplo para responder a tus clientes; las corregidas pesan más.</p>
+        {memory.length === 0 ? (
+          <EmptyState title="Momo aún no tiene recuerdos" description="Entrénalo en la pestaña “Entrenar a Momo” y marca sus respuestas con Bien o Corregir." />
+        ) : (
+          <ul className="space-y-3">
+            {memory.map((m) => (
+              <li key={m.id}><Card className="space-y-2 p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge tone={m.kind === 'corregida' ? 'brand' : 'success'}>{m.kind === 'corregida' ? 'Corregida' : 'Aprobada'}</Badge>
+                  <span className="text-xs text-muted">{m.source === 'conversacion' ? 'De una conversación real' : 'Del entrenamiento'} · {formatShortDate(m.created_at)}</span>
+                  {editable && <span className="ml-auto"><ConfirmAction action={forgetMemory} fields={{ memory_id: m.id }} trigger={<Trash2 className="h-4 w-4" aria-hidden />} triggerLabel="Olvidar esta respuesta"
+                    triggerVariant="ghost" triggerSize="sm" title="¿Olvidar esta respuesta?" description="Momo dejará de usarla como ejemplo." confirmLabel="Olvidar" /></span>}
+                </div>
+                <p className="text-sm"><span className="font-bold">Cliente:</span> {m.question}</p>
+                <p className="whitespace-pre-line text-sm"><span className="font-bold">Momo:</span> {m.answer}</p>
+              </Card></li>
+            ))}
+          </ul>
+        )}
+        <Card className="space-y-3 p-5">
+          <CardTitle>Últimos entrenamientos</CardTitle>
+          {sessions.length === 0 ? <p className="text-sm text-muted">Aún no hay conversaciones de entrenamiento guardadas.</p> : (
+            <ul className="divide-y divide-line">
+              {sessions.map((t) => (
+                <li key={t.id} className="py-2">
+                  <details>
+                    <summary className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-semibold">
+                      {t.messages.find((m) => m.author === 'client')?.body.slice(0, 70) || 'Conversación'}<span className="ml-auto shrink-0 text-xs font-normal text-muted">{t.turns} {t.turns === 1 ? 'mensaje' : 'mensajes'} · {formatShortDate(t.updated_at)}</span>
+                    </summary>
+                    <div className="mt-2 space-y-1.5 rounded-2xl bg-surface p-3 text-sm">
+                      {t.messages.map((m, i) => (
+                        <p key={i} className={m.author === 'note' ? 'text-xs text-warning' : ''}><span className="font-bold">{m.author === 'client' ? 'Cliente' : m.author === 'ai' ? 'Momo' : 'Aviso'}:</span> {m.body}</p>
+                      ))}
+                    </div>
+                  </details>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
       </div>
     )
   } else if (tab === 'politicas') {
@@ -210,7 +257,7 @@ export default async function ConocimientoPage({ searchParams }: { searchParams:
         actions={<ButtonLink href="/conocimiento?t=probar" variant="primary"><Sparkles className="h-4 w-4" aria-hidden />Entrenar a Momo</ButtonLink>} />
       <Tabs label="Secciones" active={tab} items={TABS.map((t) => ({
         id: t.id, label: t.label, href: `/conocimiento?t=${t.id}`,
-        count: t.id === 'politicas' ? counts.politicas : t.id === 'productos' ? counts.productos : t.id === 'dudas' ? counts.dudas : undefined,
+        count: t.id === 'memoria' ? counts.memoria : t.id === 'politicas' ? counts.politicas : t.id === 'productos' ? counts.productos : t.id === 'dudas' ? counts.dudas : undefined,
       }))} />
       {content}
     </div>

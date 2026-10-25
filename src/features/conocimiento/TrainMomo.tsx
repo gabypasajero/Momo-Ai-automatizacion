@@ -7,7 +7,7 @@ import { Mascot } from '@/components/brand'
 import { buttonClass, inputClass } from '@/components/ui'
 import { cn } from '@/lib/cn'
 import type { ProductPhoto } from '@/lib/ai/catalog'
-import { teachMomo, trainMomo } from './actions'
+import { rememberMomo, saveTrainingSession, teachMomo, trainMomo } from './actions'
 import { ProductPhotos } from './ProductPhotos'
 
 type Msg =
@@ -16,6 +16,8 @@ type Msg =
   | { id: number; author: 'note'; body: string; link?: boolean }
 
 const STORE = 'momo_entrenamiento'
+const SESSION = 'momo_entrenamiento_id'
+const newId = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now().toString(16).padStart(12, '0')}-0000-4000-8000-${Math.random().toString(16).slice(2, 14).padEnd(12, '0')}`.replace(/^(.{8})(.{4})/, '$1-$2'))
 let seq = Date.now()
 
 /** Reduce la foto en el teléfono antes de enviarla (máx. 1280 px, JPEG): sube rápido y gasta menos. */
@@ -35,6 +37,7 @@ async function shrink(file: File): Promise<string> {
  */
 export function TrainMomo({ aiReady }: { aiReady: boolean }) {
   const [messages, setMessages] = useState<Msg[]>([])
+  const [sessionId, setSessionId] = useState('')
   const [draft, setDraft] = useState('')
   const [editing, setEditing] = useState<number | null>(null)
   const [fix, setFix] = useState('')
@@ -47,7 +50,22 @@ export function TrainMomo({ aiReady }: { aiReady: boolean }) {
 
   useEffect(() => {
     try { const saved = localStorage.getItem(STORE); if (saved) setMessages(JSON.parse(saved) as Msg[]) } catch {}
+    let id = ''
+    try { id = localStorage.getItem(SESSION) ?? '' } catch {}
+    if (!/^[0-9a-f-]{36}$/i.test(id)) { id = newId(); try { localStorage.setItem(SESSION, id) } catch {} }
+    setSessionId(id)
   }, [])
+
+  // Cada conversación de entrenamiento queda registrada en el servidor (sin fotos).
+  const log = (all: Msg[]) => {
+    if (!sessionId) return
+    void saveTrainingSession(sessionId, all.map((m) => ({ author: m.author, body: m.author === 'client' && m.image ? `${m.body} [foto]`.trim() : m.body })))
+  }
+  const restart = () => {
+    const id = newId()
+    try { localStorage.setItem(SESSION, id) } catch {}
+    setSessionId(id); setMessages([]); setEditing(null)
+  }
   useEffect(() => {
     const recent = messages.slice(-60)
     try { localStorage.setItem(STORE, JSON.stringify(recent)) } catch {
@@ -94,7 +112,7 @@ export function TrainMomo({ aiReady }: { aiReady: boolean }) {
       add.push(result.text
         ? { id: ++seq, author: 'ai', body: result.text, question: body }
         : { id: ++seq, author: 'note', body: result.error ?? 'Momo no pudo responder.' })
-      setMessages((m) => [...m, ...add])
+      setMessages((m) => { const all = [...m, ...add]; log(all); return all })
       inputRef.current?.focus()
     })
   }
@@ -107,13 +125,18 @@ export function TrainMomo({ aiReady }: { aiReady: boolean }) {
       if (res.error) { setMessages((m) => [...m, { id: ++seq, author: 'note', body: res.error! }]); return }
       setMessages((m) => [
         ...m.map((x) => (x.id === msg.id ? { ...msg, body: answer, status: 'corregida' as const } : x)),
-        { id: ++seq, author: 'note', body: 'Guardado. Desde ahora Momo responderá así.' },
+        { id: ++seq, author: 'note', body: 'Guardado en la memoria de Momo. Desde ahora responderá así.' },
       ])
       setEditing(null); setFix('')
     })
   }
 
-  const mark = (id: number) => setMessages((m) => m.map((x) => (x.id === id && x.author === 'ai' ? { ...x, status: 'bien' as const } : x)))
+  const mark = (msg: Extract<Msg, { author: 'ai' }>) => {
+    setMessages((m) => m.map((x) => (x.id === msg.id ? { ...msg, status: 'bien' as const } : x)))
+    void rememberMomo('aprobada', msg.question, msg.body).then((res) => {
+      if (res.error) setMessages((m) => [...m, { id: ++seq, author: 'note', body: res.error! }])
+    }).catch(() => {})
+  }
 
   return (
     <div className="flex flex-col overflow-hidden rounded-3xl border border-line bg-white">
@@ -124,7 +147,7 @@ export function TrainMomo({ aiReady }: { aiReady: boolean }) {
           <p className="text-xs text-muted">Tú eres el cliente. Nada de esto se le envía a nadie.</p>
         </div>
         {messages.length > 0 && (
-          <button type="button" onClick={() => { setMessages([]); setEditing(null) }} className={buttonClass('ghost', 'sm')}>
+          <button type="button" onClick={restart} className={buttonClass('ghost', 'sm')}>
             <RotateCcw className="h-4 w-4" aria-hidden />Nueva
           </button>
         )}
@@ -167,10 +190,10 @@ export function TrainMomo({ aiReady }: { aiReady: boolean }) {
             {m.photos && <ProductPhotos photos={m.photos} />}
             <span className="flex flex-wrap items-center gap-2 text-xs text-muted">
               <Mascot className="h-4 w-4" title="" />Momo
-              {m.status === 'corregida' && <span className="font-bold text-success">· Corregida y guardada</span>}
-              {m.status === 'bien' && <span className="inline-flex items-center gap-1 font-bold text-success">· <Check className="h-3 w-3" aria-hidden />Bien</span>}
+              {m.status === 'corregida' && <span className="font-bold text-success">· Corregida y guardada en la memoria</span>}
+              {m.status === 'bien' && <span className="inline-flex items-center gap-1 font-bold text-success">· <Check className="h-3 w-3" aria-hidden />Guardada en la memoria</span>}
               {!m.status && editing !== m.id && <>
-                <button type="button" onClick={() => mark(m.id)} className="inline-flex min-h-8 items-center gap-1 rounded-full px-2 font-bold hover:bg-success-soft hover:text-success"><ThumbsUp className="h-3.5 w-3.5" aria-hidden />Bien</button>
+                <button type="button" onClick={() => mark(m)} className="inline-flex min-h-8 items-center gap-1 rounded-full px-2 font-bold hover:bg-success-soft hover:text-success"><ThumbsUp className="h-3.5 w-3.5" aria-hidden />Bien</button>
                 <button type="button" onClick={() => { setEditing(m.id); setFix(m.body) }} className="inline-flex min-h-8 items-center gap-1 rounded-full px-2 font-bold hover:bg-brand-50 hover:text-brand-700"><Pencil className="h-3.5 w-3.5" aria-hidden />Corregir</button>
               </>}
             </span>

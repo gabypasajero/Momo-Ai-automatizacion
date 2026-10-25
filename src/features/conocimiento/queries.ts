@@ -67,10 +67,32 @@ export async function getAssistant(session: Session) {
 
 export async function knowledgeCounts(session: Session) {
   const { db, org } = session
-  const [policies, products, gaps] = await Promise.all([
+  const [policies, products, gaps, memory] = await Promise.all([
     db.from('knowledge_entries').select('id', { count: 'exact', head: true }).eq('organization_id', org.id),
     db.from('products').select('id', { count: 'exact', head: true }).eq('organization_id', org.id).eq('active', true),
     db.from('knowledge_gaps').select('id', { count: 'exact', head: true }).eq('organization_id', org.id).eq('status', 'pendiente'),
+    db.from('momo_memory').select('id', { count: 'exact', head: true }).eq('organization_id', org.id),
   ])
-  return { politicas: policies.count ?? 0, productos: products.count ?? 0, dudas: gaps.count ?? 0 }
+  return { politicas: policies.count ?? 0, productos: products.count ?? 0, dudas: gaps.count ?? 0, memoria: memory.count ?? 0 }
+}
+
+export interface MemoryRow { id: string; kind: 'aprobada' | 'corregida'; question: string; answer: string; source: string; created_at: string }
+
+/** Memoria de Momo: respuestas aprobadas o corregidas por el equipo (las más nuevas primero). */
+export async function listMemory(session: Session) {
+  const { db, org } = session
+  const { data, error } = await db.from('momo_memory').select('id, kind, question, answer, source, created_at')
+    .eq('organization_id', org.id).order('created_at', { ascending: false }).limit(100)
+  if (error) throw error
+  return (data ?? []) as MemoryRow[]
+}
+
+export interface TrainingSessionRow { id: string; turns: number; updated_at: string; messages: { author: string; body: string }[] }
+
+export async function listTrainingSessions(session: Session) {
+  const { db, org } = session
+  const { data, error } = await db.from('training_sessions').select('id, turns, updated_at, messages')
+    .eq('organization_id', org.id).order('updated_at', { ascending: false }).limit(15)
+  if (error) throw error
+  return (data ?? []) as TrainingSessionRow[]
 }

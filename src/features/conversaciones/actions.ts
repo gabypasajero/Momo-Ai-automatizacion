@@ -85,6 +85,14 @@ export async function addMessage(_prev: ActionState, form: FormData): Promise<Ac
     })
     if (error) throw error
     if (author === 'client') await autoReply(session, conversationId)
+    // Sugerencia de Momo guardada sin cambios: queda en su memoria como respuesta aprobada.
+    if (author === 'ai' && checked(form, 'from_suggestion')) {
+      const { data: last } = await session.db.from('messages').select('body').eq('conversation_id', conversationId).eq('author', 'client')
+        .order('sent_at', { ascending: false }).limit(1).maybeSingle()
+      if (last?.body) {
+        await session.db.from('momo_memory').insert({ organization_id: session.org.id, kind: 'aprobada', source: 'conversacion', question: String(last.body).slice(0, 1000), answer: body.slice(0, 3000) })
+      }
+    }
     refresh()
     return ok(author === 'client' ? 'Mensaje del cliente agregado.' : 'Respuesta guardada.')
   })

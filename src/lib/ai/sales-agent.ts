@@ -34,14 +34,17 @@ interface Context {
 
 async function businessPrompt(session: Session) {
   const { db, org } = session
-  const [assistant, knowledge] = await Promise.all([
+  const [assistant, knowledge, memory] = await Promise.all([
     db.from('ai_assistants').select('name, system_prompt, model').eq('organization_id', org.id).eq('active', true).order('created_at').limit(1).maybeSingle(),
     db.from('knowledge_entries').select('title, content').eq('organization_id', org.id).order('created_at').limit(80),
+    db.from('momo_memory').select('kind, question, answer').eq('organization_id', org.id).order('created_at', { ascending: false }).limit(25),
   ])
   if (assistant.error) throw assistant.error
   if (knowledge.error) throw knowledge.error
 
   const policies = (knowledge.data ?? []).map((k) => `### ${k.title}\n${k.content}`).join('\n\n') || 'Aún no hay políticas cargadas.'
+  // Memoria: respuestas que el equipo aprobó o corrigió. Las correcciones pesan más que las políticas generales.
+  const examples = (memory.data ?? []).map((m) => `Cliente: ${m.question}\nRespuesta ${m.kind === 'corregida' ? 'correcta (corregida por el equipo)' : 'aprobada'}: ${m.answer}`).join('\n\n')
   const handoff = org.handoffContacts.map((c) => `${c.label} (${c.phone})`).join(' o ') || 'una persona del equipo'
 
   const system = `${assistant.data?.system_prompt || `Eres Momo, el asistente de ventas de ${org.name}.`}
@@ -60,7 +63,12 @@ async function businessPrompt(session: Session) {
 - Avanza la venta: confirma lo que falta (modelo, color, medidas, comuna), entrega el total si lo conoces y explica cómo pagar.
 
 ## Políticas del negocio
-${policies}`
+${policies}${examples ? `
+
+## Memoria: respuestas que el equipo aprobó o corrigió
+Úsalas como ejemplo de tono y contenido. Si el cliente pregunta algo parecido, responde en la misma línea (adaptado a la conversación); si una corrección contradice lo que pensabas responder, manda la corrección.
+
+${examples}` : ''}`
 
   return { system, model: modelFor(assistant.data?.model), assistantName: assistant.data?.name ?? 'Momo' }
 }
@@ -84,6 +92,7 @@ async function reply(session: Session, ctx: Context, { allowGaps }: { allowGaps:
   const { system, model } = await businessPrompt(session)
   const gaps: string[] = []
   const seen = new Map<string, CatalogHit>()
+  let lastHits: CatalogHit[] = []
   const photos: ProductPhoto[] = []
 
   const buscarProductos = defineTool({
@@ -93,6 +102,7 @@ async function reply(session: Session, ctx: Context, { allowGaps }: { allowGaps:
     run: async ({ consulta }) => {
       const hits = await searchCatalog(session, consulta)
       for (const h of hits) seen.set(h.id.slice(0, 8), h)
+      if (hits.length) lastHits = hits
       return describeHits(consulta, hits)
     },
   })
@@ -140,6 +150,13 @@ async function reply(session: Session, ctx: Context, { allowGaps }: { allowGaps:
     const hit = seen.get(code!.slice(0, 8))
     if (hit?.image_url && photos.length < 3 && !photos.some((p) => p.image === hit.image_url)) {
       photos.push({ name: hit.name, image: hit.image_url, url: hit.source_url, price: hit.sale_price_clp ?? hit.price_clp })
+    }
+  }
+  // Si el cliente pidió ver el producto y el modelo no adjuntó nada, van las fotos de lo último que buscó.
+  const lastClient = [...ctx.messages].reverse().find((m) => m.author === 'client')?.body ?? ''
+  if (photos.length === 0 && /foto|imagen|ver(lo|la|los|las)?\b|c[oó]mo (es|son|queda)|colou?r|modelo/i.test(lastClient)) {
+    for (const hit of lastHits.filter((h) => h.image_url).slice(0, 2)) {
+      photos.push({ name: hit.name, image: hit.image_url!, url: hit.source_url, price: hit.sale_price_clp ?? hit.price_clp })
     }
   }
   const text = result.text.replace(/\s*\[foto:\s*[0-9a-f]+\]/gi, '').replace(/\n{3,}/g, '\n\n').trim()
