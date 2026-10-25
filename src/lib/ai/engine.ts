@@ -109,6 +109,7 @@ async function runGemini(session: Session, o: AgentOptions): Promise<AgentResult
   const declarations = o.tools.map((t) => ({ name: t.name, description: t.description, parametersJsonSchema: geminiSchema(t.schema) }))
   let inputTokens = 0, outputTokens = 0, text = '', refused = false
 
+  const startedAt = Date.now()
   for (let i = 0; i < 6; i++) {
     const body = JSON.stringify({
       systemInstruction: { parts: [{ text: o.system }] },
@@ -124,6 +125,8 @@ async function runGemini(session: Session, o: AgentOptions): Promise<AgentResult
     } = {}
     models: for (const model of [geminiModel, ...GEMINI_MODELS.filter((m) => m !== geminiModel)]) {
       for (let attempt = 0; attempt < 2; attempt++) {
+        // Tope total: pasado 70 s se responde con el aviso de "ocupado" en vez de dejar el chat colgado.
+        if (Date.now() - startedAt > 70_000) break models
         // Tope de 30 s por llamada: si Gemini se cuelga, se trata como saturado y se prueba otra versión.
         res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
           method: 'POST',
