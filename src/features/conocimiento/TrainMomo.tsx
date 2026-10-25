@@ -9,10 +9,12 @@ import { cn } from '@/lib/cn'
 import type { ProductPhoto } from '@/lib/ai/catalog'
 import { rememberMomo, saveTrainingSession, teachMomo, trainMomo } from './actions'
 import { ProductPhotos } from './ProductPhotos'
+import { DesignPreview } from '@/features/disenador/DesignPreview'
+import type { DesignSpec } from '@/features/disenador/modelos'
 
 type Msg =
   | { id: number; author: 'client'; body: string; image?: string }
-  | { id: number; author: 'ai'; body: string; question: string; status?: 'bien' | 'corregida'; photos?: ProductPhoto[] }
+  | { id: number; author: 'ai'; body: string; question: string; status?: 'bien' | 'corregida'; photos?: ProductPhoto[]; designs?: DesignSpec[]; photo?: string | null }
   | { id: number; author: 'note'; body: string; link?: boolean }
 
 const STORE = 'momo_entrenamiento'
@@ -70,7 +72,7 @@ export function TrainMomo({ aiReady }: { aiReady: boolean }) {
     const recent = messages.slice(-60)
     try { localStorage.setItem(STORE, JSON.stringify(recent)) } catch {
       // Si las fotos no caben en el navegador, se guarda la conversación sin ellas.
-      try { localStorage.setItem(STORE, JSON.stringify(recent.map((m) => (m.author === 'client' && m.image ? { ...m, image: undefined, body: `${m.body} 📷`.trim() } : m)))) } catch {}
+      try { localStorage.setItem(STORE, JSON.stringify(recent.map((m) => (m.author === 'client' && m.image ? { ...m, image: undefined, body: `${m.body} 📷`.trim() } : m.author === 'ai' && m.photo ? { ...m, photo: null } : m)))) } catch {}
     }
     endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }, [messages, pending])
@@ -110,7 +112,7 @@ export function TrainMomo({ aiReady }: { aiReady: boolean }) {
       const add: Msg[] = []
       for (const g of result.gaps ?? []) add.push({ id: ++seq, author: 'note', body: `Momo no sabía esto y lo anotó como duda: «${g}»`, link: true })
       add.push(result.text
-        ? { id: ++seq, author: 'ai', body: result.text, question: body || 'el cliente envió una foto', photos: result.photos }
+        ? { id: ++seq, author: 'ai', body: result.text, question: body || 'el cliente envió una foto', photos: result.photos, designs: result.designs, photo: [...next].reverse().flatMap((x) => (x.author === 'client' && x.image ? [x.image] : []))[0] ?? null }
         : { id: ++seq, author: 'note', body: result.error ?? 'Momo no pudo responder.' })
       setMessages((m) => { const all = [...m, ...add]; log(all); return all })
       inputRef.current?.focus()
@@ -188,6 +190,7 @@ export function TrainMomo({ aiReady }: { aiReady: boolean }) {
               <p className="whitespace-pre-line break-words rounded-[20px_20px_20px_6px] border border-line bg-white px-4 py-2.5">{m.body}</p>
             )}
             {m.photos && <ProductPhotos photos={m.photos} />}
+            {m.designs && m.designs.length > 0 && <div className="flex flex-wrap gap-2">{m.designs.map((d, i) => <DesignPreview key={i} spec={d} photo={m.photo ?? null} />)}</div>}
             <span className="flex flex-wrap items-center gap-2 text-xs text-muted">
               <Mascot className="h-4 w-4" title="" />Momo
               {m.status === 'corregida' && <span className="font-bold text-success">· Corregida y guardada en la memoria</span>}

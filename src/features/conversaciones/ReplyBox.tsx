@@ -7,6 +7,8 @@ import { cn } from '@/lib/cn'
 import { addMessage } from './actions'
 import { ProductPhotos } from '@/features/conocimiento/ProductPhotos'
 import type { ProductPhoto } from '@/lib/ai/catalog'
+import { DesignPreview } from '@/features/disenador/DesignPreview'
+import type { DesignSpec } from '@/features/disenador/modelos'
 import { learnFromEdit, suggestReplyAction } from './ai-actions'
 
 type Mode = 'human' | 'client'
@@ -25,6 +27,7 @@ export function ReplyBox({ conversationId, aiReady, channelLabel, waitingForRepl
   const [draft, setDraft] = useState('')
   const [suggestion, setSuggestion] = useState<string | null>(null)
   const [photos, setPhotos] = useState<ProductPhoto[]>([])
+  const [designs, setDesigns] = useState<DesignSpec[]>([])
   // Sugerencia que se pasó a "Editar": si se guarda distinta, Momo ofrece aprender la versión corregida.
   const [editedFrom, setEditedFrom] = useState<string | null>(null)
   const [teach, setTeach] = useState<{ answer: string; state: 'ask' | 'saving' | 'done' | 'error'; message?: string } | null>(null)
@@ -35,7 +38,7 @@ export function ReplyBox({ conversationId, aiReady, channelLabel, waitingForRepl
   const suggest = () => startThinking(async () => {
     setAiError(null)
     const result = await suggestReplyAction(conversationId)
-    if (result.text) { setSuggestion(result.text); setPhotos(result.photos ?? []) }
+    if (result.text) { setSuggestion(result.text); setPhotos(result.photos ?? []); setDesigns(result.designs ?? []) }
     else setAiError(result.error ?? 'Momo no pudo responder.')
   })
 
@@ -53,6 +56,12 @@ export function ReplyBox({ conversationId, aiReady, channelLabel, waitingForRepl
             <div className="mt-3 space-y-1.5">
               <p className="text-xs font-bold text-muted">Fotos para enviarle (mantén apretada una foto para guardarla, o abre la página del producto):</p>
               <ProductPhotos photos={photos} />
+            </div>
+          )}
+          {designs.length > 0 && (
+            <div className="mt-3 space-y-1.5">
+              <p className="text-xs font-bold text-muted">Vista previa del diseño (descárgala y envíasela al cliente):</p>
+              <div className="flex flex-wrap gap-2">{designs.map((d, i) => <DesignPreview key={i} spec={d} photo={null} />)}</div>
             </div>
           )}
           <ActionForm action={addMessage} onSuccess={() => setSuggestion(null)} className="mt-3">

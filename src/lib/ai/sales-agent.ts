@@ -4,6 +4,7 @@ import { CHANNELS, type Channel } from '@/config/sales'
 import { formatClp } from '@/lib/format'
 import type { Session } from '@/lib/session'
 import { describeHits, searchCatalog, type CatalogHit, type ProductPhoto } from './catalog'
+import { LETRAS, MODELOS, MODELO_IDS, TINTAS, type DesignSpec } from '@/features/disenador/modelos'
 import { defineTool, runAgent, type AgentImage } from './engine'
 import { modelFor } from './runtime'
 
@@ -67,6 +68,8 @@ async function businessPrompt(session: Session) {
 - Copia los precios exactamente como vienen del catálogo (por ejemplo $159.990, nunca $159.000 ni "aprox.").
 - Si pide algo a medida o fuera de catálogo (por ejemplo cocinas a medida), ofrece derivarlo con ${handoff}.
 - Si el cliente envía una foto: mírala y coméntala con cariño (qué se ve, colores, personaje). Si es para un mueble personalizado, di si sirve para imprimir (nítida y de buen tamaño; si se ve pixelada, pide una de mejor calidad), pregunta en qué mueble la quiere y ofrece el diseñador de la web para ver la vista previa. Si es una foto de un espacio o de un mueble de referencia, úsala para entender medidas y estilo y deriva lo que sea a medida.
+- Diseños: si el cliente quiere un mueble personalizado (clóset, cómoda, velador, mudador) y ya mandó su imagen o te dio un nombre, usa crear_diseno para mostrarle cómo quedaría. Si pide un personaje (por ejemplo Stitch) y no ha mandado imagen, pídele con cariño que te envíe la imagen que más le guste de ese personaje (o el nombre) para armarle la vista previa al tiro. Aclara que es una vista referencial.
+- Lee al cliente y adapta tu estilo: si es directo y va al grano ("precio?", "tienen?"), responde corto, concreto y sin adornos; si es una mamá, papá o alguien que cuenta para quién es o se emociona, sé más cariñosa y conversadora; si duda o compara, guíala con 2 opciones claras; si está molesto, empatía primero y solución concreta.
 - Avanza la venta: confirma lo que falta (modelo, color, medidas, comuna), entrega el total si lo conoces y explica cómo pagar.
 
 ## Políticas del negocio (de la más antigua a la más reciente; si dos se contradicen, manda la más reciente)
@@ -93,7 +96,7 @@ ${lines.join('\n') || '(sin mensajes todavía)'}
 Escribe la próxima respuesta para el cliente.`
 }
 
-export type ReplyResult = ({ text: string; error?: undefined } | { error: string; text?: undefined }) & { gaps?: string[]; photos?: ProductPhoto[] }
+export type ReplyResult = ({ text: string; error?: undefined } | { error: string; text?: undefined }) & { gaps?: string[]; photos?: ProductPhoto[]; designs?: DesignSpec[] }
 
 async function reply(session: Session, ctx: Context, { allowGaps }: { allowGaps: boolean }): Promise<ReplyResult> {
   const { system, model } = await businessPrompt(session)
@@ -101,6 +104,7 @@ async function reply(session: Session, ctx: Context, { allowGaps }: { allowGaps:
   const seen = new Map<string, CatalogHit>()
   let lastHits: CatalogHit[] = []
   const photos: ProductPhoto[] = []
+  const designs: DesignSpec[] = []
 
   const buscarProductos = defineTool({
     name: 'buscar_productos',
@@ -130,6 +134,29 @@ async function reply(session: Session, ctx: Context, { allowGaps }: { allowGaps:
     },
   })
 
+  const crearDiseno = defineTool({
+    name: 'crear_diseno',
+    description: `Crea una vista previa del mueble personalizado (como el diseñador de la web) con la foto que mandó el cliente y/o un nombre. Modelos: ${MODELOS.map((m) => `${m.id} = ${m.etiqueta}`).join('; ')}.`,
+    schema: z.object({
+      modelo: z.enum(MODELO_IDS),
+      nombre: z.string().max(18).optional().describe('Nombre a poner en el mueble, si el cliente lo pidió'),
+      letra: z.enum(LETRAS.map((l) => l.id) as [string, ...string[]]).optional(),
+      tinta: z.enum(Object.keys(TINTAS) as [string, ...string[]]).optional().describe('Color del nombre'),
+      con_foto: z.boolean().describe('true para usar la última foto que envió el cliente'),
+    }),
+    run: async ({ modelo, nombre, letra, tinta, con_foto }) => {
+      const m = MODELOS.find((x) => x.id === modelo)!
+      const conFoto = con_foto && (ctx.images?.length ?? 0) > 0
+      if (!conFoto && !nombre) return 'El cliente aún no envía su imagen: pídele que mande la foto o el personaje que quiere (o un nombre) para crear la vista previa.'
+      if (designs.length >= 2) return 'Ya creaste vistas previas en este mensaje.'
+      const { data } = await session.db.from('products').select('price_clp, sale_price_clp, name').eq('organization_id', session.org.id).eq('active', true)
+        .ilike('name', `${m.prefijo}%`).order('name').limit(5)
+      const prod = (data ?? []).find((p) => /personalizable/i.test(String(p.name))) ?? data?.[0]
+      designs.push({ modelo, nombre: nombre?.trim() || undefined, letra: letra as DesignSpec['letra'], tinta: tinta as DesignSpec['tinta'], conFoto, precio: prod ? (prod.sale_price_clp ?? prod.price_clp) as number : null })
+      return `Vista previa creada: ${m.etiqueta}${nombre ? ` con el nombre ${nombre}` : ''}${conFoto ? ' con la imagen del cliente' : ''}. Se envía junto a tu mensaje; dile que es una vista referencial.`
+    },
+  })
+
   const registrarDuda = defineTool({
     name: 'registrar_duda',
     description: 'Anota una pregunta del cliente que no puedes responder con el catálogo ni las políticas, para que el equipo te la enseñe.',
@@ -147,7 +174,7 @@ async function reply(session: Session, ctx: Context, { allowGaps }: { allowGaps:
 
   const result = await runAgent(session, {
     feature: 'vendedor', system, claudeModel: model, effort: 'medium',
-    tools: allowGaps ? [buscarProductos, enviarFotos, registrarDuda] : [buscarProductos, enviarFotos],
+    tools: allowGaps ? [buscarProductos, enviarFotos, crearDiseno, registrarDuda] : [buscarProductos, enviarFotos, crearDiseno],
     messages: [{ role: 'user', text: transcriptText(ctx), images: ctx.images }],
   })
   if (result.refused) return { error: 'Momo no puede responder este mensaje. Respóndelo tú.' }
@@ -167,7 +194,7 @@ async function reply(session: Session, ctx: Context, { allowGaps }: { allowGaps:
     }
   }
   const text = result.text.replace(/\s*\[foto:\s*[0-9a-f]+\]/gi, '').replace(/\n{3,}/g, '\n\n').trim()
-  return text ? { text, gaps, photos } : { error: 'Momo no encontró qué responder. Intenta de nuevo.', gaps }
+  return text ? { text, gaps, photos, designs } : { error: 'Momo no encontró qué responder. Intenta de nuevo.', gaps }
 }
 
 /** Sugerencia de respuesta para una conversación registrada. */
