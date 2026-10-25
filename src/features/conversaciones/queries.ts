@@ -1,4 +1,5 @@
 import 'server-only'
+import type { ProductPhoto } from '@/lib/ai/catalog'
 import type { Channel, SaleStatus, Step } from '@/config/sales'
 import { searchTerm } from '@/lib/actions'
 import type { Session } from '@/lib/session'
@@ -106,6 +107,7 @@ export interface MessageRow {
   author: 'client' | 'ai' | 'human' | 'system'
   body: string | null
   sent_at: string
+  attachments: ProductPhoto[] | null
 }
 
 export interface ConversationDetail extends ConversationListItem {
@@ -130,7 +132,7 @@ export async function getConversation(session: Session, id: string): Promise<Con
 
   const item = toItem(data as unknown as Row) as ConversationDetail
   const [messages, product] = await Promise.all([
-    db.from('messages').select('id, author, body, sent_at').eq('conversation_id', id).order('sent_at').limit(300),
+    db.from('messages').select('id, author, body, sent_at, attachments').eq('conversation_id', id).order('sent_at').limit(300),
     item.sale?.product_id
       ? db.from('products').select('id, name, price_clp, sale_price_clp').eq('id', item.sale.product_id).maybeSingle()
       : Promise.resolve({ data: null, error: null }),

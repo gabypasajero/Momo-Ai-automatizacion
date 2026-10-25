@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { CHANNELS, type Channel } from '@/config/sales'
 import { formatClp } from '@/lib/format'
 import type { Session } from '@/lib/session'
-import { describeHits, searchCatalog } from './catalog'
+import { describeHits, searchCatalog, type CatalogHit, type ProductPhoto } from './catalog'
 import { defineTool, runAgent, type AgentImage } from './engine'
 import { modelFor } from './runtime'
 
@@ -50,7 +50,7 @@ async function businessPrompt(session: Session) {
 - Escribes la próxima respuesta para el cliente y se le envía tal cual: eres tú quien atiende.
 - Responde SOLO con el texto del mensaje para el cliente: sin comillas, sin explicaciones, sin notas internas.
 - Español de Chile, cálido y breve (1 a 4 frases). Pocos emojis.
-- Para precios, medidas y productos usa buscar_productos. Nunca inventes precios, medidas, plazos, stock ni políticas.
+- Para precios, medidas y productos usa buscar_productos. Cuando hables de un producto concreto (o el cliente pida fotos, colores o "cómo es"), muéstraselo con enviar_fotos usando el código [foto: …] que trae la búsqueda (máximo 3). Las fotos se envían junto a tu mensaje: no pegues enlaces en el texto. Nunca inventes precios, medidas, plazos, stock ni políticas.
 - Si el cliente pregunta algo que no está en las políticas ni en el catálogo, usa registrar_duda con la pregunta y responde que lo confirmas en breve.
 - Si pide algo a medida o fuera de catálogo (por ejemplo cocinas a medida), ofrece derivarlo con ${handoff}.
 - Si el cliente envía una foto: mírala y coméntala con cariño (qué se ve, colores, personaje). Si es para un mueble personalizado, di si sirve para imprimir (nítida y de buen tamaño; si se ve pixelada, pide una de mejor calidad), pregunta en qué mueble la quiere y ofrece el diseñador de la web para ver la vista previa. Si es una foto de un espacio o de un mueble de referencia, úsala para entender medidas y estilo y deriva lo que sea a medida.
@@ -75,17 +75,39 @@ ${lines.join('\n') || '(sin mensajes todavía)'}
 Escribe la próxima respuesta para el cliente.`
 }
 
-export type ReplyResult = ({ text: string; error?: undefined } | { error: string; text?: undefined }) & { gaps?: string[] }
+export type ReplyResult = ({ text: string; error?: undefined } | { error: string; text?: undefined }) & { gaps?: string[]; photos?: ProductPhoto[] }
 
 async function reply(session: Session, ctx: Context, { allowGaps }: { allowGaps: boolean }): Promise<ReplyResult> {
   const { system, model } = await businessPrompt(session)
   const gaps: string[] = []
+  const seen = new Map<string, CatalogHit>()
+  const photos: ProductPhoto[] = []
 
   const buscarProductos = defineTool({
     name: 'buscar_productos',
     description: 'Busca productos del catálogo por texto (nombre, categoría, medidas, diseño). Devuelve hasta 8 con precio y oferta.',
     schema: z.object({ consulta: z.string().min(1).max(120) }),
-    run: async ({ consulta }) => describeHits(consulta, await searchCatalog(session, consulta)),
+    run: async ({ consulta }) => {
+      const hits = await searchCatalog(session, consulta)
+      for (const h of hits) seen.set(h.id.slice(0, 8), h)
+      return describeHits(consulta, hits)
+    },
+  })
+
+  const enviarFotos = defineTool({
+    name: 'enviar_fotos',
+    description: 'Envía al cliente fotos de referencia de productos del catálogo (máximo 3), usando el código [foto: …] que entrega buscar_productos.',
+    schema: z.object({ codigos: z.array(z.string().min(4).max(40)).min(1).max(3) }),
+    run: async ({ codigos }) => {
+      const sent: string[] = []
+      for (const raw of codigos) {
+        const hit = seen.get(raw.replace(/[^0-9a-f]/gi, '').slice(0, 8))
+        if (!hit?.image_url || photos.some((p) => p.image === hit.image_url) || photos.length >= 3) continue
+        photos.push({ name: hit.name, image: hit.image_url, url: hit.source_url, price: hit.sale_price_clp ?? hit.price_clp })
+        sent.push(hit.name)
+      }
+      return sent.length ? `Fotos listas para enviar: ${sent.join(', ')}.` : 'No encontré esas fotos; busca el producto primero con buscar_productos.'
+    },
   })
 
   const registrarDuda = defineTool({
@@ -105,12 +127,12 @@ async function reply(session: Session, ctx: Context, { allowGaps }: { allowGaps:
 
   const result = await runAgent(session, {
     feature: 'vendedor', system, claudeModel: model, effort: 'medium',
-    tools: allowGaps ? [buscarProductos, registrarDuda] : [buscarProductos],
+    tools: allowGaps ? [buscarProductos, enviarFotos, registrarDuda] : [buscarProductos, enviarFotos],
     messages: [{ role: 'user', text: transcriptText(ctx), images: ctx.images }],
   })
   if (result.refused) return { error: 'Momo no puede responder este mensaje. Respóndelo tú.' }
   const text = result.text
-  return text ? { text, gaps } : { error: 'Momo no encontró qué responder. Intenta de nuevo.', gaps }
+  return text ? { text, gaps, photos } : { error: 'Momo no encontró qué responder. Intenta de nuevo.', gaps }
 }
 
 /** Sugerencia de respuesta para una conversación registrada. */
@@ -166,7 +188,7 @@ export async function autoReply(session: Session, conversationId: string) {
     if (!data?.ai_enabled || data.status === 'closed') return
     const result = await suggestReply(session, conversationId)
     if (!result.text) return
-    await session.db.from('messages').insert({ organization_id: session.org.id, conversation_id: conversationId, author: 'ai', body: result.text })
+    await session.db.from('messages').insert({ organization_id: session.org.id, conversation_id: conversationId, author: 'ai', body: result.text, attachments: result.photos ?? [] })
   } catch (error) {
     console.error('Momo automático: no pudo responder', error)
   }

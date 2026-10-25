@@ -3,6 +3,7 @@ import { formatClp } from '@/lib/format'
 import type { Session } from '@/lib/session'
 
 export interface CatalogHit {
+  id: string
   name: string
   category: string | null
   price_clp: number
@@ -10,12 +11,17 @@ export interface CatalogHit {
   dimensions: string | null
   description: string | null
   customizable: boolean
+  image_url: string | null
+  source_url: string | null
 }
+
+/** Foto de un producto que Momo le muestra al cliente. */
+export interface ProductPhoto { name: string; image: string; url: string | null; price: number }
 
 /** Búsqueda en el catálogo: primero texto completo en español, luego por nombre. */
 export async function searchCatalog(session: Session, query: string, limit = 8) {
   const { db, org } = session
-  const fields = 'name, category, price_clp, sale_price_clp, dimensions, description, customizable'
+  const fields = 'id, name, category, price_clp, sale_price_clp, dimensions, description, customizable, image_url, source_url'
   const full = await db.from('products').select(fields).eq('organization_id', org.id).eq('active', true)
     .textSearch('search', query, { type: 'websearch', config: 'spanish' }).limit(limit)
   if (full.error) throw full.error
@@ -33,6 +39,7 @@ export function describeHits(query: string, hits: CatalogHit[]) {
     const price = p.sale_price_clp ? `${formatClp(p.sale_price_clp)} (oferta, antes ${formatClp(p.price_clp)})` : formatClp(p.price_clp)
     const extra = [p.category, p.dimensions, p.customizable ? 'personalizable' : null].filter(Boolean).join(' · ')
     const desc = p.description ? ` — ${p.description.slice(0, 220)}` : ''
-    return `- ${p.name}: ${price}${extra ? ` · ${extra}` : ''}${desc}`
+    const ref = p.image_url ? ` [foto: ${p.id.slice(0, 8)}]` : ''
+    return `- ${p.name}: ${price}${extra ? ` · ${extra}` : ''}${desc}${ref}`
   }).join('\n')
 }
