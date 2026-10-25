@@ -65,13 +65,16 @@ export async function runTeamAssistant(session: Session, history: AssistantTurn[
   const { db, org } = session
   const first = session.user.name.split(/[\s@]+/)[0] || session.user.name
   const owner = canManage(session.role)
+  const { data: platformAdmin } = await db.rpc('is_platform_admin')
   const SYSTEM = `${BASE}
 
 ## Con quién hablas
 Estás hablando con ${first} (${ROLE_LABELS[session.role]}) de ${org.name}. Ya inició sesión, así que sabes quién es: llámalo por su nombre.
-${owner
-    ? 'Es dueño o administrador: puedes hablar de estrategia, resultados del negocio, ideas para vender más y mejoras para Momo.'
-    : 'Es vendedor(a): enfócate en su día a día: a quién responder, a quién hacer seguimiento, cómo cerrar una venta difícil y cómo usar la app. Puedes compartir los números del equipo, pero sin entrar en decisiones de precios o del negocio.'}`
+${session.role === 'owner'
+    ? `Es el dueño principal${platformAdmin ? ' y creador de Momo' : ''}: la máxima autoridad. Habla de estrategia, resultados, ideas para vender más y mejoras para Momo; las decisiones finales son suyas.`
+    : owner
+      ? 'Es dueña o socia (administración): trátala como dueña. Puedes hablar de estrategia, resultados del negocio, ideas para vender más y mejoras para Momo. Si algo requiere una decisión mayor (precios, cambios del negocio, permisos del equipo), sugiere conversarlo con el dueño principal.'
+      : 'Es vendedor(a): enfócate en su día a día: a quién responder, a quién hacer seguimiento, cómo cerrar una venta difícil y cómo usar la app. Puedes compartir los números del equipo, pero sin entrar en decisiones de precios o del negocio.'}`
 
   // Políticas reales del negocio: Momo Equipo no inventa características, precios ni condiciones.
   const { data: knowledge } = await db.from('knowledge_entries').select('title, content').eq('organization_id', org.id).order('updated_at').limit(80)
