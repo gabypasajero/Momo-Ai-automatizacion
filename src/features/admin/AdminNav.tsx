@@ -4,6 +4,7 @@ import { Building2, Ellipsis, Gauge, Home, Inbox, ShieldCheck, Wallet } from 'lu
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/cn'
+import { useTyping } from '@/lib/hooks/useTyping'
 
 const ITEMS = [
   { href: '/admin', label: 'Inicio', icon: Home },
@@ -45,7 +46,9 @@ export function AdminNav({ pending }: { pending: number }) {
 /** Barra inferior de Momo Control en el teléfono: oscura con dorado, distinta a la de las empresas. */
 export function AdminBottomNav({ pending }: { pending: number }) {
   const pathname = usePathname()
+  const typing = useTyping()
   const inPhone = PHONE.some((h) => isActive(pathname, h))
+  if (typing) return null
   const items = [...ITEMS.filter((i) => PHONE.includes(i.href)), { href: '/admin/mas', label: 'Más', icon: Ellipsis }]
   return (
     <nav aria-label="Administración" className="fixed inset-x-3 bottom-[max(10px,env(safe-area-inset-bottom))] z-30 grid grid-cols-5 gap-1 rounded-[26px] border border-[#F4B740]/25 bg-[#1E0F17] p-1.5 shadow-xl shadow-black/30 md:hidden">

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { activeSection, type NavId } from '@/config/navigation'
 import { cn } from '@/lib/cn'
+import { useTyping } from '@/lib/hooks/useTyping'
 import { NavIcon } from './NavIcon'
 
 const ITEMS: { id: NavId; label: string; href: string }[] = [
@@ -16,8 +17,11 @@ const ITEMS: { id: NavId; label: string; href: string }[] = [
 /** Menú inferior del teléfono: barra flotante color vino con 4 botones grandes al alcance del pulgar. */
 export function BottomNav({ waiting }: { waiting: number }) {
   const section = activeSection(usePathname())
+  // Con el teclado abierto la barra se esconde para no tapar lo que se escribe.
+  const typing = useTyping()
   // Lo que no está en la barra (conocimiento, resultados, ajustes) se marca en "Más".
   const active = section && ITEMS.some((i) => i.id === section) ? section : section ? 'mas' : null
+  if (typing) return null
   return (
     <nav aria-label="Menú principal" className="fixed inset-x-3 bottom-[max(10px,env(safe-area-inset-bottom))] z-30 grid grid-cols-4 gap-1 rounded-[28px] bg-brand-900 p-1.5 shadow-xl shadow-brand-900/30 md:hidden">
       {ITEMS.map((item) => {

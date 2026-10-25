@@ -80,7 +80,13 @@ export function TrainMomo({ aiReady }: { aiReady: boolean }) {
         body: m.body,
         image: m.author === 'client' && m.image ? (withPhoto.includes(m.id) ? m.image : 'foto') : undefined,
       }))
-      const result = await trainMomo(transcript)
+      let result: Awaited<ReturnType<typeof trainMomo>>
+      try {
+        result = await trainMomo(transcript)
+      } catch {
+        // Pasa si la página quedó abierta desde una versión anterior de la app.
+        result = { error: 'No se pudo enviar. Recarga la página (o cierra y abre la app) e intenta otra vez.' }
+      }
       const add: Msg[] = []
       for (const g of result.gaps ?? []) add.push({ id: ++seq, author: 'note', body: `Momo no sabía esto y lo anotó como duda: «${g}»`, link: true })
       add.push(result.text
@@ -95,7 +101,7 @@ export function TrainMomo({ aiReady }: { aiReady: boolean }) {
     const answer = fix.trim()
     if (answer.length < 3) return
     start(async () => {
-      const res = await teachMomo(msg.question, answer)
+      const res = await teachMomo(msg.question, answer).catch(() => ({ error: 'No se pudo guardar. Recarga la página e intenta otra vez.' }))
       if (res.error) { setMessages((m) => [...m, { id: ++seq, author: 'note', body: res.error! }]); return }
       setMessages((m) => [
         ...m.map((x) => (x.id === msg.id ? { ...msg, body: answer, status: 'corregida' as const } : x)),
@@ -191,7 +197,8 @@ export function TrainMomo({ aiReady }: { aiReady: boolean }) {
         </button>
         <label className="sr-only" htmlFor="entrenar-mensaje">Mensaje del cliente</label>
         <textarea id="entrenar-mensaje" ref={inputRef} value={draft} onChange={(e) => setDraft(e.target.value)} rows={1} maxLength={1000}
-          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send() } }}
+          enterKeyHint="send"
+          onKeyDown={(e) => { if ((e.key === 'Enter' || e.keyCode === 13) && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send() } }}
           placeholder="Escribe como cliente y presiona Enter" className={cn(inputClass, 'max-h-40 min-h-12 flex-1 resize-none')} />
         <button type="submit" disabled={pending || (!draft.trim() && !photo)} aria-label="Enviar" className={cn(buttonClass('primary'), 'h-12 w-12 shrink-0 px-0')}>
           <SendHorizontal className="h-5 w-5" aria-hidden />
