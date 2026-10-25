@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { EDITORS, MANAGERS, attempt, checked, describeError, fail, money, ok, optionalMoney, optionalText, requireRole, text, uuid, type ActionState } from '@/lib/actions'
 import { describeAiError } from '@/lib/ai/runtime'
+import type { DesignSpec } from '@/features/disenador/modelos'
 import type { ProductPhoto } from '@/lib/ai/catalog'
 import { testReply, trainReply } from '@/lib/ai/sales-agent'
 import type { Session } from '@/lib/session'
@@ -186,7 +187,7 @@ export async function testMomo(question: string): Promise<TestResult> {
   }
 }
 
-export type TrainResult = { text?: string; error?: string; gaps?: string[]; photos?: ProductPhoto[] }
+export type TrainResult = { text?: string; error?: string; gaps?: string[]; photos?: ProductPhoto[]; designs?: DesignSpec[] }
 
 /** Un turno del entrenamiento: Momo responde a la conversación de práctica completa. */
 const IMAGE_URL = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/
@@ -213,7 +214,7 @@ export async function trainMomo(messages: { author: 'client' | 'ai'; body: strin
   try {
     const result = await trainReply(session, clean, images)
     if (result.gaps?.length) refresh()
-    return result.text ? { text: result.text, gaps: result.gaps, photos: result.photos } : { error: result.error ?? 'Momo no encontró qué responder.', gaps: result.gaps }
+    return result.text ? { text: result.text, gaps: result.gaps, photos: result.photos, designs: result.designs } : { error: result.error ?? 'Momo no encontró qué responder.', gaps: result.gaps }
   } catch (error) {
     return { error: describeAiError(error) }
   }
