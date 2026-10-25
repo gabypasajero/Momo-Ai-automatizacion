@@ -9,7 +9,8 @@ import { ROLE_LABELS } from '@/config/sales'
 import { MomoCompanion } from '@/features/assistant/MomoCompanion'
 import { signOut, switchOrg } from '@/features/auth/actions'
 import { countWaiting } from '@/features/conversaciones/queries'
-import { NoOrganizationError, NotConfiguredError, getSession, isPlatformAdmin } from '@/lib/session'
+import { firstName } from '@/lib/format'
+import { NoOrganizationError, NotConfiguredError, canManage, getSession, isPlatformAdmin } from '@/lib/session'
 
 // Todo el panel depende de la sesión: nunca se genera como página estática.
 export const dynamic = 'force-dynamic'
@@ -73,7 +74,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <main id="contenido" className="mx-auto w-full max-w-7xl px-4 py-6 md:px-8 md:py-8">{children}</main>
       </div>
       <BottomNav waiting={waiting} />
-      <MomoCompanion />
+      <MomoCompanion userName={firstName(session.user.name)} owner={canManage(session.role)} />
     </div>
   )
 }

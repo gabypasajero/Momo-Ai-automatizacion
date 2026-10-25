@@ -10,12 +10,11 @@ import { cn } from '@/lib/cn'
 type Action = { type: 'navigate'; href: string; label: string }
 type Turn = { role: 'user' | 'assistant'; text: string; actions?: Action[] }
 
-const SUGGESTIONS = [
-  '¿Cómo registro un chat de Marketplace?',
-  'Agrega una política de despacho',
-  'Busca closets de 3 puertas',
-  '¿Cómo sumo a un vendedor?',
-]
+/** Preguntas sugeridas según quién usa la app. */
+const SUGGESTIONS = {
+  owner: ['¿Cómo vamos esta semana?', 'Dame 3 ideas para vender más', '¿Qué preguntan más los clientes?', '¿Qué clientes quedaron sin cerrar?'],
+  agent: ['¿A quién tengo que responder?', '¿A quién le hago seguimiento hoy?', '¿Cómo vamos esta semana?', 'Busca clósets de 3 puertas'],
+}
 
 /** Atajos que funcionan aunque la IA no esté conectada todavía. */
 const SHORTCUTS: Action[] = [
@@ -25,14 +24,18 @@ const SHORTCUTS: Action[] = [
   { type: 'navigate', href: '/ajustes?t=perfil#contrasena', label: 'Cambiar contraseña' },
 ]
 
-const WELCOME: Turn = {
-  role: 'assistant',
-  text: '¡Hola! Soy Momo. Puedo explicarte cómo usar la app, buscar productos y enseñarme políticas nuevas para responder mejor. ¿En qué te ayudo?',
+function welcome(name: string, owner: boolean): Turn {
+  return {
+    role: 'assistant',
+    text: owner
+      ? `¡Hola ${name}! 👋 Soy Momo Equipo. Te cuento cómo va el negocio, qué clientes quedaron pendientes y te doy ideas para vender más. ¿Por dónde partimos?`
+      : `¡Hola ${name}! 👋 Soy Momo Equipo. Te ayudo con tu día: a quién responder, a quién hacerle seguimiento y cómo cerrar esa venta difícil. ¿Qué necesitas?`,
+  }
 }
 
-export function AssistantPanel({ onClose, onHideMascot }: { onClose: () => void; onHideMascot: () => void }) {
+export function AssistantPanel({ onClose, onHideMascot, userName, owner }: { onClose: () => void; onHideMascot: () => void; userName: string; owner: boolean }) {
   const router = useRouter()
-  const [turns, setTurns] = useState<Turn[]>([WELCOME])
+  const [turns, setTurns] = useState<Turn[]>(() => [welcome(userName, owner)])
   const [draft, setDraft] = useState('')
   const [thinking, setThinking] = useState(false)
   const [offline, setOffline] = useState(false)
@@ -81,8 +84,8 @@ export function AssistantPanel({ onClose, onHideMascot }: { onClose: () => void;
       <header className="flex items-center gap-2 border-b border-line bg-brand-50 px-4 py-3">
         <Mascot className="h-9 w-9" title="" />
         <div className="mr-auto">
-          <h2 className="font-display font-bold">Momo · tu asistente</h2>
-          <p className="text-xs text-muted">{offline ? 'Modo atajos (IA sin conectar)' : 'Te ayudo a usar la app'}</p>
+          <h2 className="font-display font-bold">Momo Equipo</h2>
+          <p className="text-xs text-muted">{offline ? 'Modo atajos (IA sin conectar)' : (owner ? 'Resultados, estrategia y pendientes' : 'Tu día de ventas y la app')}</p>
         </div>
         <button type="button" onClick={onHideMascot} title="Ocultar a Momo" aria-label="Ocultar a Momo" className="flex h-10 w-10 items-center justify-center rounded-full text-muted hover:bg-white hover:text-ink"><EyeOff className="h-4 w-4" /></button>
         <button type="button" onClick={onClose} title="Cerrar" aria-label="Cerrar asistente" className="flex h-10 w-10 items-center justify-center rounded-full text-muted hover:bg-white hover:text-ink"><X className="h-4 w-4" /></button>
@@ -114,7 +117,7 @@ export function AssistantPanel({ onClose, onHideMascot }: { onClose: () => void;
         )}
         {turns.length === 1 && (
           <div className="flex flex-wrap gap-1 pt-1">
-            {SUGGESTIONS.map((s) => (
+            {SUGGESTIONS[owner ? 'owner' : 'agent'].map((s) => (
               <button key={s} type="button" onClick={() => send(s)} className="min-h-8 rounded-full border border-brand-200 bg-white px-3 text-xs font-semibold text-brand-700 hover:bg-brand-50">{s}</button>
             ))}
           </div>
