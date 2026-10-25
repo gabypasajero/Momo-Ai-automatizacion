@@ -56,6 +56,7 @@ export function ReplyBox({ conversationId, aiReady, channelLabel, waitingForRepl
             <input type="hidden" name="conversation_id" value={conversationId} />
             <input type="hidden" name="author" value="ai" />
             <input type="hidden" name="body" value={suggestion} />
+            <input type="hidden" name="from_suggestion" value="true" />
             <div className="flex flex-wrap gap-2" onClickCapture={(e) => { if ((e.target as HTMLElement).closest('button[type=submit]')) void flashCopied(suggestion) }}>
               <SubmitButton pendingLabel="Guardando…"><ClipboardPaste className="h-4 w-4" aria-hidden />Copiar y guardar</SubmitButton>
               <button type="button" className={buttonClass('secondary')} onClick={() => { setDraft(suggestion); setMode('human'); setSuggestion(null) }}>

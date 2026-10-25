@@ -219,20 +219,47 @@ export async function trainMomo(messages: { author: 'client' | 'ai'; body: strin
   }
 }
 
-/** Corrección durante el entrenamiento: queda como conocimiento para las próximas respuestas. */
-export async function teachMomo(question: string, answer: string): Promise<{ ok?: boolean; error?: string }> {
+/** Memoria de Momo: "Bien" guarda la respuesta como aprobada; "Corregir" guarda la versión correcta. */
+export async function rememberMomo(kind: 'aprobada' | 'corregida', question: string, answer: string): Promise<{ ok?: boolean; error?: string }> {
   try {
     const session = await requireRole(EDITORS)
-    const q = question.trim().slice(0, 500)
-    const a = answer.trim().slice(0, 2000)
-    if (a.length < 3) return { error: 'Escribe cómo debió responder Momo.' }
-    const title = `Respuesta enseñada: ${q.length > 60 ? q.slice(0, 57) + '…' : q || 'conversación de práctica'}`
-    const content = q ? `Cuando un cliente pregunte algo como «${q}», responde así: ${a}` : a
-    const { error } = await session.db.from('knowledge_entries').insert({ organization_id: session.org.id, assistant_id: await assistantId(session), title, content })
+    const q = question.trim().slice(0, 1000)
+    const a = answer.trim().slice(0, 3000)
+    if (!q || a.length < 3) return { error: kind === 'corregida' ? 'Escribe cómo debió responder Momo.' : 'No hay respuesta para guardar.' }
+    const { error } = await session.db.from('momo_memory').insert({ organization_id: session.org.id, kind: kind === 'corregida' ? 'corregida' : 'aprobada', question: q, answer: a })
     if (error) throw error
     refresh()
     return { ok: true }
   } catch (error) {
     return { error: describeError(error) }
   }
+}
+
+/** Corrección durante el entrenamiento: queda en la memoria de Momo para las próximas respuestas. */
+export async function teachMomo(question: string, answer: string) {
+  return rememberMomo('corregida', question, answer)
+}
+
+/** Guarda la conversación de entrenamiento (sin fotos) para revisarla después. */
+export async function saveTrainingSession(id: string, messages: { author: string; body: string }[]) {
+  try {
+    if (!/^[0-9a-f-]{36}$/i.test(id)) return
+    const session = await requireRole(EDITORS)
+    const clean = messages.slice(-80).map((m) => ({ author: String(m.author).slice(0, 10), body: String(m.body ?? '').slice(0, 2000) }))
+    const row = { messages: clean, turns: clean.filter((m) => m.author === 'client').length, updated_at: new Date().toISOString() }
+    const { data } = await session.db.from('training_sessions').update(row).eq('organization_id', session.org.id).eq('id', id).select('id')
+    if (!data?.length) await session.db.from('training_sessions').insert({ id, organization_id: session.org.id, ...row })
+  } catch (error) {
+    console.error('entrenamiento: no se pudo guardar la conversación', error)
+  }
+}
+
+export async function forgetMemory(_prev: ActionState, form: FormData): Promise<ActionState> {
+  return attempt(async () => {
+    const session = await requireRole(EDITORS)
+    const { error } = await session.db.from('momo_memory').delete().eq('organization_id', session.org.id).eq('id', uuid(form, 'memory_id'))
+    if (error) throw error
+    refresh()
+    return ok('Momo olvidó esa respuesta.')
+  })
 }
