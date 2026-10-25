@@ -68,7 +68,7 @@ async function businessPrompt(session: Session) {
 - Copia los precios exactamente como vienen del catálogo (por ejemplo $159.990, nunca $159.000 ni "aprox.").
 - Si pide algo a medida o fuera de catálogo (por ejemplo cocinas a medida), ofrece derivarlo con ${handoff}.
 - Si el cliente envía una foto: mírala y coméntala con cariño (qué se ve, colores, personaje). Si es para un mueble personalizado, di si sirve para imprimir (nítida y de buen tamaño; si se ve pixelada, pide una de mejor calidad), pregunta en qué mueble la quiere y ofrece el diseñador de la web para ver la vista previa. Si es una foto de un espacio o de un mueble de referencia, úsala para entender medidas y estilo y deriva lo que sea a medida.
-- Diseños: si el cliente quiere un mueble personalizado (clóset, cómoda, velador, mudador) y ya mandó su imagen o te dio un nombre, usa crear_diseno para mostrarle cómo quedaría. Si pide un personaje (por ejemplo Stitch) y no ha mandado imagen, pídele con cariño que te envíe la imagen que más le guste de ese personaje (o el nombre) para armarle la vista previa al tiro. Aclara que es una vista referencial.
+- Diseños: SOLO usa crear_diseno cuando el cliente ya te envió una imagen referencial (una foto en el chat). Nunca diseñes solo con un nombre ni con un personaje que no te mandaron. Si quiere un personalizado y no ha mandado imagen, invítalo con tus palabras, por ejemplo: "Si me envías una imagen referencial del diseño que quieres, te muestro un diseño genérico de cómo se vería en las puertas y cajones, con el nombre incluido 😊". Cuando muestres el diseño, aclara que es una vista referencial.
 - Lee al cliente y adapta tu estilo: si es directo y va al grano ("precio?", "tienen?"), responde corto, concreto y sin adornos; si es una mamá, papá o alguien que cuenta para quién es o se emociona, sé más cariñosa y conversadora; si duda o compara, guíala con 2 opciones claras; si está molesto, empatía primero y solución concreta.
 - Avanza la venta: confirma lo que falta (modelo, color, medidas, comuna), entrega el total si lo conoces y explica cómo pagar.
 
@@ -146,8 +146,10 @@ async function reply(session: Session, ctx: Context, { allowGaps }: { allowGaps:
     }),
     run: async ({ modelo, nombre, letra, tinta, con_foto }) => {
       const m = MODELOS.find((x) => x.id === modelo)!
-      const conFoto = con_foto && (ctx.images?.length ?? 0) > 0
-      if (!conFoto && !nombre) return 'El cliente aún no envía su imagen: pídele que mande la foto o el personaje que quiere (o un nombre) para crear la vista previa.'
+      // Regla de DTO: solo se diseña con la imagen referencial que manda el cliente (Momo nunca inventa la imagen).
+      void con_foto
+      const conFoto = (ctx.images?.length ?? 0) > 0
+      if (!conFoto) return 'No hay imagen del cliente: NO hay vista previa. Pídele con cariño que te envíe una imagen referencial del personalizado que quiere, y explícale que con ella le muestras un diseño genérico de cómo quedaría en las puertas y cajones, con el nombre si quiere.'
       if (designs.length >= 2) return 'Ya creaste vistas previas en este mensaje.'
       const { data } = await session.db.from('products').select('price_clp, sale_price_clp, name').eq('organization_id', session.org.id).eq('active', true)
         .ilike('name', `${m.prefijo}%`).order('name').limit(5)
