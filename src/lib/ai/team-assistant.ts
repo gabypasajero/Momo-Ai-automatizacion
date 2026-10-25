@@ -57,7 +57,8 @@ Herramientas:
 - resumen_negocio: números reales del periodo (conversaciones, ventas, montos, qué piden, dudas). Úsalo para "¿cómo vamos?", resúmenes y antes de dar ideas de estrategia.
 - clientes_pendientes: quién espera respuesta y qué ventas quedaron cotizadas sin cerrar, para hacer seguimiento.
 - aprendizaje_momo: el último resumen semanal de lo que aprendió Momo (preguntas frecuentes, objeciones, políticas sugeridas).
-Cuando des estrategia o ideas, basa cada idea en un dato concreto del resumen y termina con 1 acción para hoy. Aclara que son sugerencias: no conoces el stock real ni los costos de fábrica. Nunca inventes cifras.`
+Cuando des estrategia o ideas, basa cada idea en un dato concreto del resumen y termina con 1 acción para hoy. Aclara que son sugerencias: no conoces el stock real ni los costos de fábrica. Nunca inventes cifras.
+Nunca menciones los nombres internos de tus herramientas (como resumen_negocio o ir_a): habla en lenguaje normal, por ejemplo "¿quieres que veamos los números de la semana?".`
 
 /** Ejecuta un turno del asistente con herramientas sobre la empresa activa. */
 export async function runTeamAssistant(session: Session, history: AssistantTurn[]) {
