@@ -110,7 +110,7 @@ export function TrainMomo({ aiReady }: { aiReady: boolean }) {
       const add: Msg[] = []
       for (const g of result.gaps ?? []) add.push({ id: ++seq, author: 'note', body: `Momo no sabía esto y lo anotó como duda: «${g}»`, link: true })
       add.push(result.text
-        ? { id: ++seq, author: 'ai', body: result.text, question: body }
+        ? { id: ++seq, author: 'ai', body: result.text, question: body || 'el cliente envió una foto', photos: result.photos }
         : { id: ++seq, author: 'note', body: result.error ?? 'Momo no pudo responder.' })
       setMessages((m) => { const all = [...m, ...add]; log(all); return all })
       inputRef.current?.focus()
