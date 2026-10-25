@@ -18,8 +18,13 @@ export function aiProvider(): Provider | null {
   return claude ? 'claude' : null
 }
 
-/** Modelos de Gemini en orden de preferencia: si Google retira uno (404), se prueba el siguiente. */
-const GEMINI_MODELS = [process.env.GEMINI_MODEL, 'gemini-flash-latest', 'gemini-3.8-flash'].filter((m): m is string => Boolean(m))
+/**
+ * Modelos de Gemini en orden de preferencia. Si uno no existe (404), está saturado (503/500)
+ * o agotó su cuota gratuita (429), se reintenta una vez y luego se prueba el siguiente.
+ */
+const GEMINI_MODELS = [process.env.GEMINI_MODEL, 'gemini-flash-latest', 'gemini-3.8-flash', 'gemini-flash-lite-latest'].filter((m): m is string => Boolean(m))
+const RETRYABLE = new Set([429, 500, 503])
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 let geminiModel = GEMINI_MODELS[0]!
 
 export interface ToolSpec<S extends z.ZodObject = z.ZodObject> {
@@ -117,15 +122,21 @@ async function runGemini(session: Session, o: AgentOptions): Promise<AgentResult
       usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number }
       error?: { message?: string }
     } = {}
-    for (const model of [geminiModel, ...GEMINI_MODELS.filter((m) => m !== geminiModel)]) {
-      res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY ?? '' },
-        body,
-      })
-      data = await res.json().catch(() => ({}))
-      if (res.status !== 404) { geminiModel = model; break }
-      console.error('IA: modelo de Gemini no disponible', model)
+    models: for (const model of [geminiModel, ...GEMINI_MODELS.filter((m) => m !== geminiModel)]) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY ?? '' },
+          body,
+        })
+        data = await res.json().catch(() => ({}))
+        if (res.ok) { geminiModel = model; break models }
+        if (res.status === 404) break
+        if (!RETRYABLE.has(res.status)) break models
+        if (attempt === 0 && res.status !== 429) await sleep(1500)
+        else break
+      }
+      console.error('IA: Gemini no disponible, probando otro modelo', model, res?.status)
     }
     if (!res?.ok) throw new GeminiError(res?.status ?? 500, data.error?.message ?? `HTTP ${res?.status}`)
     inputTokens += data.usageMetadata?.promptTokenCount ?? 0

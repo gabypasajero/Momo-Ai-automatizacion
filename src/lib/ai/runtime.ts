@@ -71,6 +71,7 @@ export function describeAiError(error: unknown) {
   if (error instanceof Error && error.name === 'GeminiError') {
     const status = (error as Error & { status: number }).status
     if (status === 429) return 'Momo llegó al límite de uso gratuito por ahora. Prueba de nuevo en un rato.'
+    if (status === 503 || status === 500) return 'Google (Gemini) está muy ocupado en este momento. Prueba de nuevo en un minuto.'
     console.error('IA: error de Gemini', status, error.message)
     return 'Momo tuvo un problema para pensar la respuesta. Intenta otra vez.'
   }
