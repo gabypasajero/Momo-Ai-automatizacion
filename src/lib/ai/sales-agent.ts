@@ -51,7 +51,10 @@ async function businessPrompt(session: Session) {
 - Responde SOLO con el texto del mensaje para el cliente: sin comillas, sin explicaciones, sin notas internas.
 - Español de Chile, cálido y breve (1 a 4 frases). Pocos emojis.
 - Para precios, medidas y productos usa buscar_productos. Cuando hables de un producto concreto (o el cliente pida fotos, colores o "cómo es"), muéstraselo con enviar_fotos usando el código [foto: …] que trae la búsqueda (máximo 3). Las fotos se envían junto a tu mensaje: no pegues enlaces en el texto. Nunca inventes precios, medidas, plazos, stock ni políticas.
-- Si el cliente pregunta algo que no está en las políticas ni en el catálogo, usa registrar_duda con la pregunta y responde que lo confirmas en breve.
+- Si el cliente pregunta algo que no está en las políticas ni en el catálogo, usa registrar_duda con la pregunta y responde que lo confirmas en breve. No afirmes ni niegues cosas que las políticas no digan (por ejemplo crédito, descuentos, pago contra entrega o factura con condiciones especiales): eso también es una duda.
+- Para colores, tamaños o variantes, busca en el catálogo (los nombres de los productos traen el color) en vez de suponer.
+- Si el cliente reclama por un producto dañado o con falla, aplica la política de garantía: explica qué hacer paso a paso (fotos, plazo para avisar) y ofrece derivar con una persona.
+- Saluda solo en tu primer mensaje de la conversación; después ve directo al punto.
 - Si pide algo a medida o fuera de catálogo (por ejemplo cocinas a medida), ofrece derivarlo con ${handoff}.
 - Si el cliente envía una foto: mírala y coméntala con cariño (qué se ve, colores, personaje). Si es para un mueble personalizado, di si sirve para imprimir (nítida y de buen tamaño; si se ve pixelada, pide una de mejor calidad), pregunta en qué mueble la quiere y ofrece el diseñador de la web para ver la vista previa. Si es una foto de un espacio o de un mueble de referencia, úsala para entender medidas y estilo y deriva lo que sea a medida.
 - Avanza la venta: confirma lo que falta (modelo, color, medidas, comuna), entrega el total si lo conoces y explica cómo pagar.
@@ -131,7 +134,15 @@ async function reply(session: Session, ctx: Context, { allowGaps }: { allowGaps:
     messages: [{ role: 'user', text: transcriptText(ctx), images: ctx.images }],
   })
   if (result.refused) return { error: 'Momo no puede responder este mensaje. Respóndelo tú.' }
-  const text = result.text
+  // Algunos modelos escriben el código [foto: …] en el texto en vez de usar enviar_fotos:
+  // se convierte en foto adjunta y se quita del mensaje.
+  for (const [, code] of result.text.matchAll(/\[foto:\s*([0-9a-f]{6,})\]/gi)) {
+    const hit = seen.get(code!.slice(0, 8))
+    if (hit?.image_url && photos.length < 3 && !photos.some((p) => p.image === hit.image_url)) {
+      photos.push({ name: hit.name, image: hit.image_url, url: hit.source_url, price: hit.sale_price_clp ?? hit.price_clp })
+    }
+  }
+  const text = result.text.replace(/\s*\[foto:\s*[0-9a-f]+\]/gi, '').replace(/\n{3,}/g, '\n\n').trim()
   return text ? { text, gaps, photos } : { error: 'Momo no encontró qué responder. Intenta de nuevo.', gaps }
 }
 
