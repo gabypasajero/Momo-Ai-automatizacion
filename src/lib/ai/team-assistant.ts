@@ -1,6 +1,9 @@
 import 'server-only'
 import { z } from 'zod'
-import { canEdit, type Session } from '@/lib/session'
+import { CHANNELS, ROLE_LABELS, type Channel } from '@/config/sales'
+import { formatClp } from '@/lib/format'
+import { canEdit, canManage, type Session } from '@/lib/session'
+import { latestLearningReport } from './learning'
 import { describeHits, searchCatalog } from './catalog'
 import { defineTool, runAgent } from './engine'
 
@@ -34,8 +37,8 @@ export interface AssistantTurn {
   text: string
 }
 
-const SYSTEM = `Eres Momo, el asistente interno de la app Momo AI (ventas por chat con IA para pymes).
-Hablas con el equipo de la empresa (dueños y vendedores), no con clientes finales. Responde en español de Chile, cercano y breve (2 a 5 frases), sin tecnicismos.
+const BASE = `Eres Momo Equipo, el compañero de trabajo interno de la app Momo AI (ventas por chat con IA para pymes).
+Hablas con el equipo de la empresa (dueños y vendedores), nunca con clientes finales. Responde en español de Chile, cercano, claro y breve, sin tecnicismos. Usa listas cortas cuando des datos.
 
 Qué hay en la app:
 - Hoy: resumen del día, clientes que te esperan, ventas de la semana y lo que Momo aprendió.
@@ -50,12 +53,99 @@ Herramientas:
 - buscar_productos: para responder sobre productos, precios u ofertas. Nunca inventes precios.
 - ver_conocimiento: revisa qué políticas ya sabe Momo antes de agregar algo.
 - agregar_conocimiento: guarda una política o dato del negocio. Antes de usarla muestra el título y el texto y pide confirmación explícita; úsala solo cuando la persona confirme. Redacta claro y completo, en tercera persona.
-- ir_a: lleva a una pantalla cuando lo pidan o cuando sea lo más rápido para resolver la duda.`
+- ir_a: lleva a una pantalla cuando lo pidan o cuando sea lo más rápido para resolver la duda.
+- resumen_negocio: números reales del periodo (conversaciones, ventas, montos, qué piden, dudas). Úsalo para "¿cómo vamos?", resúmenes y antes de dar ideas de estrategia.
+- clientes_pendientes: quién espera respuesta y qué ventas quedaron cotizadas sin cerrar, para hacer seguimiento.
+- aprendizaje_momo: el último resumen semanal de lo que aprendió Momo (preguntas frecuentes, objeciones, políticas sugeridas).
+Cuando des estrategia o ideas, basa cada idea en un dato concreto del resumen y termina con 1 acción para hoy. Aclara que son sugerencias: no conoces el stock real ni los costos de fábrica. Nunca inventes cifras.`
 
 /** Ejecuta un turno del asistente con herramientas sobre la empresa activa. */
 export async function runTeamAssistant(session: Session, history: AssistantTurn[]) {
   const actions: AssistantAction[] = []
   const { db, org } = session
+  const first = session.user.name.split(/[\s@]+/)[0] || session.user.name
+  const owner = canManage(session.role)
+  const SYSTEM = `${BASE}
+
+## Con quién hablas
+Estás hablando con ${first} (${ROLE_LABELS[session.role]}) de ${org.name}. Ya inició sesión, así que sabes quién es: llámalo por su nombre.
+${owner
+    ? 'Es dueño o administrador: puedes hablar de estrategia, resultados del negocio, ideas para vender más y mejoras para Momo.'
+    : 'Es vendedor(a): enfócate en su día a día: a quién responder, a quién hacer seguimiento, cómo cerrar una venta difícil y cómo usar la app. Puedes compartir los números del equipo, pero sin entrar en decisiones de precios o del negocio.'}`
+
+  const since = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString()
+
+  const resumenNegocio = defineTool({
+    name: 'resumen_negocio',
+    description: 'Números reales de la empresa en los últimos N días: conversaciones, mensajes, cuánto respondió Momo, ventas (cantidad y monto), ventas en curso por paso, lo más pedido y dudas pendientes.',
+    schema: z.object({ dias: z.number().int().min(1).max(90).default(7) }),
+    run: async ({ dias }) => {
+      const from = since(dias)
+      const [convs, msgs, won, open, interest, gaps, waiting] = await Promise.all([
+        db.from('conversations').select('channel').eq('organization_id', org.id).gte('created_at', from).limit(5000),
+        db.from('messages').select('author').eq('organization_id', org.id).gte('sent_at', from).limit(20000),
+        db.from('tickets').select('value_clp, delivery_clp, title').eq('organization_id', org.id).eq('status', 'won').gte('closed_at', from),
+        db.from('tickets').select('step').eq('organization_id', org.id).eq('status', 'open'),
+        db.from('tickets').select('title').eq('organization_id', org.id).not('title', 'is', null).gte('created_at', from).limit(2000),
+        db.from('knowledge_gaps').select('question').eq('organization_id', org.id).eq('status', 'pendiente').limit(10),
+        db.from('conversations').select('id', { count: 'exact', head: true }).eq('organization_id', org.id).eq('status', 'open').eq('ai_enabled', false).eq('last_message_author', 'client'),
+      ])
+      const byChannel = new Map<string, number>()
+      for (const c of convs.data ?? []) byChannel.set(c.channel as string, (byChannel.get(c.channel as string) ?? 0) + 1)
+      const authors = (msgs.data ?? []).reduce<Record<string, number>>((a, m) => ({ ...a, [m.author as string]: (a[m.author as string] ?? 0) + 1 }), {})
+      const replies = (authors.ai ?? 0) + (authors.human ?? 0)
+      const total = (won.data ?? []).reduce((s, t) => s + Number(t.value_clp ?? 0) + Number(t.delivery_clp ?? 0), 0)
+      const steps = (open.data ?? []).reduce<Record<string, number>>((a, t) => ({ ...a, [t.step as string]: (a[t.step as string] ?? 0) + 1 }), {})
+      const top = new Map<string, number>()
+      for (const t of interest.data ?? []) { const k = String(t.title).trim(); if (k) top.set(k, (top.get(k) ?? 0) + 1) }
+      return [
+        `Periodo: últimos ${dias} días.`,
+        `Conversaciones nuevas: ${(convs.data ?? []).length}${byChannel.size ? ` (${[...byChannel].map(([c, n]) => `${CHANNELS[c as Channel]?.label ?? c}: ${n}`).join(', ')})` : ''}.`,
+        `Mensajes de clientes: ${authors.client ?? 0}. Respuestas: ${replies} (Momo ${authors.ai ?? 0}, equipo ${authors.human ?? 0}).`,
+        `Ventas cerradas: ${(won.data ?? []).length} por ${formatClp(total)}.`,
+        `Ventas en curso: pregunta ${steps.pregunta ?? 0}, cotizado ${steps.cotizado ?? 0}, pagado ${steps.pagado ?? 0}.`,
+        `Clientes esperando respuesta ahora: ${waiting.count ?? 0}.`,
+        `Lo más pedido: ${[...top].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([k, n]) => `${k} (${n})`).join(', ') || 'sin datos'}.`,
+        `Dudas que Momo no sabe responder: ${(gaps.data ?? []).map((g) => `«${g.question}»`).join('; ') || 'ninguna'}.`,
+      ].join('\n')
+    },
+  })
+
+  const clientesPendientes = defineTool({
+    name: 'clientes_pendientes',
+    description: 'Clientes que esperan respuesta y ventas cotizadas que no se han cerrado (para seguimiento), con días sin movimiento.',
+    schema: z.object({}),
+    run: async () => {
+      const [waiting, quoted] = await Promise.all([
+        db.from('conversations').select('id, last_message_at, last_message_preview, contact:contacts(name)').eq('organization_id', org.id).eq('status', 'open')
+          .eq('last_message_author', 'client').order('last_message_at', { ascending: true }).limit(10),
+        db.from('tickets').select('title, value_clp, updated_at, conversation_id, contact:contacts(name)').eq('organization_id', org.id).eq('status', 'open')
+          .eq('step', 'cotizado').order('updated_at', { ascending: true }).limit(10),
+      ])
+      const days = (iso: string | null) => (iso ? Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000)) : 0)
+      const name = (c: unknown) => (c as { name?: string } | null)?.name ?? 'Cliente'
+      const a = (waiting.data ?? []).map((c) => `- ${name(c.contact)}: espera hace ${days(c.last_message_at as string)} día(s) · «${String(c.last_message_preview ?? '').slice(0, 80)}»`)
+      const b = (quoted.data ?? []).map((t) => `- ${name(t.contact)}: cotizado ${t.title ?? ''}${t.value_clp ? ` por ${formatClp(Number(t.value_clp))}` : ''}, sin movimiento hace ${days(t.updated_at as string)} día(s)`)
+      if (a.length || b.length) actions.push({ type: 'navigate', href: ROUTES.te_esperan, label: 'Ver quién espera' })
+      return `Esperan respuesta:\n${a.join('\n') || '- Nadie'}\n\nCotizados sin cerrar:\n${b.join('\n') || '- Ninguno'}`
+    },
+  })
+
+  const aprendizajeMomo = defineTool({
+    name: 'aprendizaje_momo',
+    description: 'Último resumen semanal de aprendizaje de Momo: preguntas frecuentes, objeciones, lo que funcionó y políticas sugeridas.',
+    schema: z.object({}),
+    run: async () => {
+      const r = await latestLearningReport(session)
+      if (!r) return 'Aún no hay resumen de aprendizaje. Se crea en Lo que Momo sabe › Aprendizaje › Analizar mi semana.'
+      const d = r.data
+      return [`Resumen (${r.period_start.slice(0, 10)} a ${r.period_end.slice(0, 10)}): ${d.resumen}`,
+        `Preguntas frecuentes: ${d.preguntas_frecuentes.map((p) => `${p.pregunta} (${p.tiene_respuesta ? 'Momo sabe' : 'falta enseñarle'})`).join('; ')}`,
+        `Objeciones: ${d.objeciones.map((o) => o.objecion).join('; ')}`,
+        `Políticas sugeridas: ${d.politicas_sugeridas.map((p) => p.titulo).join('; ')}`].join('\n')
+    },
+  })
+
 
   const buscarProductos = defineTool({
     name: 'buscar_productos',
@@ -104,7 +194,7 @@ export async function runTeamAssistant(session: Session, history: AssistantTurn[
   // Chat de ayuda: esfuerzo bajo para respuestas rápidas y económicas.
   const result = await runAgent(session, {
     feature: 'asistente_interno', system: SYSTEM, effort: 'low',
-    tools: [buscarProductos, verConocimiento, agregarConocimiento, irA],
+    tools: [buscarProductos, verConocimiento, agregarConocimiento, irA, resumenNegocio, clientesPendientes, aprendizajeMomo],
     messages: history,
   })
 

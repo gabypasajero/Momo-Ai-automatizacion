@@ -39,7 +39,7 @@ const writeHidden = (v: boolean) => {
 }
 const rand = (a: number, b: number) => a + Math.random() * (b - a)
 
-export function MomoCompanion() {
+export function MomoCompanion({ userName, owner }: { userName: string; owner: boolean }) {
   const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
   const [hidden, setHidden] = useState(false)
@@ -190,7 +190,7 @@ export function MomoCompanion() {
           className={cn('fixed bottom-[88px] right-3 z-40 flex h-14 w-14 items-center justify-center rounded-full border-2 border-white bg-brand-100 shadow-pop', blink && 'momo-blink')}>
           <Mascot className="h-11 w-11" title="" />
         </button>}
-        {open && <AssistantPanel onClose={() => setOpen(false)} onHideMascot={() => toggleHidden(true)} />}
+        {open && <AssistantPanel userName={userName} owner={owner} onClose={() => setOpen(false)} onHideMascot={() => toggleHidden(true)} />}
       </>
     )
   }
@@ -225,7 +225,7 @@ export function MomoCompanion() {
           </div>
         </button>
       </div>
-      {open && <AssistantPanel onClose={() => setOpen(false)} onHideMascot={() => toggleHidden(true)} />}
+      {open && <AssistantPanel userName={userName} owner={owner} onClose={() => setOpen(false)} onHideMascot={() => toggleHidden(true)} />}
     </>
   )
 }
