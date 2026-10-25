@@ -36,7 +36,7 @@ async function businessPrompt(session: Session) {
   const { db, org } = session
   const [assistant, knowledge, memory] = await Promise.all([
     db.from('ai_assistants').select('name, system_prompt, model').eq('organization_id', org.id).eq('active', true).order('created_at').limit(1).maybeSingle(),
-    db.from('knowledge_entries').select('title, content').eq('organization_id', org.id).order('created_at').limit(80),
+    db.from('knowledge_entries').select('title, content').eq('organization_id', org.id).order('updated_at').limit(80),
     db.from('momo_memory').select('kind, question, answer').eq('organization_id', org.id).order('created_at', { ascending: false }).limit(25),
   ])
   if (assistant.error) throw assistant.error
@@ -62,7 +62,7 @@ async function businessPrompt(session: Session) {
 - Si el cliente envía una foto: mírala y coméntala con cariño (qué se ve, colores, personaje). Si es para un mueble personalizado, di si sirve para imprimir (nítida y de buen tamaño; si se ve pixelada, pide una de mejor calidad), pregunta en qué mueble la quiere y ofrece el diseñador de la web para ver la vista previa. Si es una foto de un espacio o de un mueble de referencia, úsala para entender medidas y estilo y deriva lo que sea a medida.
 - Avanza la venta: confirma lo que falta (modelo, color, medidas, comuna), entrega el total si lo conoces y explica cómo pagar.
 
-## Políticas del negocio
+## Políticas del negocio (de la más antigua a la más reciente; si dos se contradicen, manda la más reciente)
 ${policies}${examples ? `
 
 ## Memoria: respuestas que el equipo aprobó o corrigió
