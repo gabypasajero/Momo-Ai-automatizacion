@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Mascot } from '@/components/brand'
 import { cn } from '@/lib/cn'
+import { useTyping } from '@/lib/hooks/useTyping'
 import { AssistantPanel } from './AssistantPanel'
 
 /**
@@ -42,6 +43,7 @@ export function MomoCompanion() {
   const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
   const [hidden, setHidden] = useState(false)
+  const typing = useTyping()
   const [open, setOpen] = useState(false)
   const [still, setStill] = useState(false) // celular o "reducir movimiento"
   const [narrow, setNarrow] = useState(false) // celular: queda sobre la barra inferior
@@ -184,10 +186,10 @@ export function MomoCompanion() {
   if (narrow) {
     return (
       <>
-        <button type="button" onClick={() => setOpen((o) => !o)} aria-label="Abrir el asistente Momo" aria-expanded={open}
+        {!(typing && !open) && <button type="button" onClick={() => setOpen((o) => !o)} aria-label="Abrir el asistente Momo" aria-expanded={open}
           className={cn('fixed bottom-[88px] right-3 z-40 flex h-14 w-14 items-center justify-center rounded-full border-2 border-white bg-brand-100 shadow-pop', blink && 'momo-blink')}>
           <Mascot className="h-11 w-11" title="" />
-        </button>
+        </button>}
         {open && <AssistantPanel onClose={() => setOpen(false)} onHideMascot={() => toggleHidden(true)} />}
       </>
     )
