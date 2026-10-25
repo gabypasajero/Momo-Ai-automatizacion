@@ -6,6 +6,7 @@ import { CHANNELS } from '@/config/sales'
 import { cn } from '@/lib/cn'
 import { formatDateTime, formatTime } from '@/lib/format'
 import { setAiEnabled, setArchived } from './actions'
+import { ProductPhotos } from '@/features/conocimiento/ProductPhotos'
 import { MarkRead } from './MarkRead'
 import type { ConversationDetail, MessageRow } from './queries'
 import { ReplyBox } from './ReplyBox'
@@ -23,6 +24,7 @@ function Bubble({ message }: { message: MessageRow }) {
         message.author === 'ai' && 'rounded-[20px_20px_6px_20px] bg-accent-soft text-ink')}>
         {message.body}
       </p>
+      {Array.isArray(message.attachments) && message.attachments.length > 0 && <ProductPhotos photos={message.attachments.filter((a) => a?.image)} />}
       <span className="flex items-center gap-1 text-xs text-muted">
         {message.author === 'ai' && <Mascot className="h-4 w-4" title="" />}
         {message.author === 'ai' ? 'Momo' : message.author === 'human' ? 'Equipo' : 'Cliente'} · {formatTime(message.sent_at)}

@@ -5,6 +5,8 @@ import { useState, useTransition } from 'react'
 import { ActionForm, SubmitButton, buttonClass, copyText } from '@/components/ui'
 import { cn } from '@/lib/cn'
 import { addMessage } from './actions'
+import { ProductPhotos } from '@/features/conocimiento/ProductPhotos'
+import type { ProductPhoto } from '@/lib/ai/catalog'
 import { suggestReplyAction } from './ai-actions'
 
 type Mode = 'human' | 'client'
@@ -22,6 +24,7 @@ export function ReplyBox({ conversationId, aiReady, channelLabel, waitingForRepl
   const [mode, setMode] = useState<Mode>('human')
   const [draft, setDraft] = useState('')
   const [suggestion, setSuggestion] = useState<string | null>(null)
+  const [photos, setPhotos] = useState<ProductPhoto[]>([])
   const [aiError, setAiError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [thinking, startThinking] = useTransition()
@@ -29,7 +32,7 @@ export function ReplyBox({ conversationId, aiReady, channelLabel, waitingForRepl
   const suggest = () => startThinking(async () => {
     setAiError(null)
     const result = await suggestReplyAction(conversationId)
-    if (result.text) setSuggestion(result.text)
+    if (result.text) { setSuggestion(result.text); setPhotos(result.photos ?? []) }
     else setAiError(result.error ?? 'Momo no pudo responder.')
   })
 
@@ -43,6 +46,12 @@ export function ReplyBox({ conversationId, aiReady, channelLabel, waitingForRepl
         <div className="rounded-3xl border-2 border-brand-200 bg-white p-4">
           <p className="flex items-center gap-1.5 text-sm font-extrabold text-brand-700"><Sparkles className="h-4 w-4" aria-hidden />Momo te sugiere responder</p>
           <p className="mt-2 whitespace-pre-line">{suggestion}</p>
+          {photos.length > 0 && (
+            <div className="mt-3 space-y-1.5">
+              <p className="text-xs font-bold text-muted">Fotos para enviarle (mantén apretada una foto para guardarla, o abre la página del producto):</p>
+              <ProductPhotos photos={photos} />
+            </div>
+          )}
           <ActionForm action={addMessage} onSuccess={() => setSuggestion(null)} className="mt-3">
             <input type="hidden" name="conversation_id" value={conversationId} />
             <input type="hidden" name="author" value="ai" />

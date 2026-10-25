@@ -6,11 +6,13 @@ import { useEffect, useRef, useState, useTransition } from 'react'
 import { Mascot } from '@/components/brand'
 import { buttonClass, inputClass } from '@/components/ui'
 import { cn } from '@/lib/cn'
+import type { ProductPhoto } from '@/lib/ai/catalog'
 import { teachMomo, trainMomo } from './actions'
+import { ProductPhotos } from './ProductPhotos'
 
 type Msg =
   | { id: number; author: 'client'; body: string; image?: string }
-  | { id: number; author: 'ai'; body: string; question: string; status?: 'bien' | 'corregida' }
+  | { id: number; author: 'ai'; body: string; question: string; status?: 'bien' | 'corregida'; photos?: ProductPhoto[] }
   | { id: number; author: 'note'; body: string; link?: boolean }
 
 const STORE = 'momo_entrenamiento'
@@ -162,6 +164,7 @@ export function TrainMomo({ aiReady }: { aiReady: boolean }) {
             ) : (
               <p className="whitespace-pre-line break-words rounded-[20px_20px_20px_6px] border border-line bg-white px-4 py-2.5">{m.body}</p>
             )}
+            {m.photos && <ProductPhotos photos={m.photos} />}
             <span className="flex flex-wrap items-center gap-2 text-xs text-muted">
               <Mascot className="h-4 w-4" title="" />Momo
               {m.status === 'corregida' && <span className="font-bold text-success">· Corregida y guardada</span>}
