@@ -1,13 +1,13 @@
 'use client'
 
-import { Check, ClipboardPaste, Pencil, Sparkles, X } from 'lucide-react'
+import { BookOpenCheck, Check, ClipboardPaste, Pencil, Sparkles, X } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { ActionForm, SubmitButton, buttonClass, copyText } from '@/components/ui'
 import { cn } from '@/lib/cn'
 import { addMessage } from './actions'
 import { ProductPhotos } from '@/features/conocimiento/ProductPhotos'
 import type { ProductPhoto } from '@/lib/ai/catalog'
-import { suggestReplyAction } from './ai-actions'
+import { learnFromEdit, suggestReplyAction } from './ai-actions'
 
 type Mode = 'human' | 'client'
 
@@ -25,6 +25,9 @@ export function ReplyBox({ conversationId, aiReady, channelLabel, waitingForRepl
   const [draft, setDraft] = useState('')
   const [suggestion, setSuggestion] = useState<string | null>(null)
   const [photos, setPhotos] = useState<ProductPhoto[]>([])
+  // Sugerencia que se pasó a "Editar": si se guarda distinta, Momo ofrece aprender la versión corregida.
+  const [editedFrom, setEditedFrom] = useState<string | null>(null)
+  const [teach, setTeach] = useState<{ answer: string; state: 'ask' | 'saving' | 'done' | 'error'; message?: string } | null>(null)
   const [aiError, setAiError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [thinking, startThinking] = useTransition()
@@ -59,7 +62,7 @@ export function ReplyBox({ conversationId, aiReady, channelLabel, waitingForRepl
             <input type="hidden" name="from_suggestion" value="true" />
             <div className="flex flex-wrap gap-2" onClickCapture={(e) => { if ((e.target as HTMLElement).closest('button[type=submit]')) void flashCopied(suggestion) }}>
               <SubmitButton pendingLabel="Guardando…"><ClipboardPaste className="h-4 w-4" aria-hidden />Copiar y guardar</SubmitButton>
-              <button type="button" className={buttonClass('secondary')} onClick={() => { setDraft(suggestion); setMode('human'); setSuggestion(null) }}>
+              <button type="button" className={buttonClass('secondary')} onClick={() => { setDraft(suggestion); setEditedFrom(suggestion); setMode('human'); setSuggestion(null); setTeach(null) }}>
                 <Pencil className="h-4 w-4" aria-hidden />Editar
               </button>
               <button type="button" className={buttonClass('ghost')} onClick={() => setSuggestion(null)}>
@@ -83,7 +86,29 @@ export function ReplyBox({ conversationId, aiReady, channelLabel, waitingForRepl
       )}
       {aiError && <p role="alert" className="rounded-2xl bg-danger-soft px-4 py-2.5 text-sm font-semibold text-danger">{aiError}</p>}
 
-      <ActionForm action={addMessage} onSuccess={() => setDraft('')} className="rounded-3xl border border-line bg-white p-3">
+      {teach && (
+        <div role="status" className="flex flex-wrap items-center gap-3 rounded-3xl border-2 border-brand-200 bg-brand-50 p-4">
+          <BookOpenCheck className="h-6 w-6 shrink-0 text-brand-700" aria-hidden />
+          <p className="min-w-0 flex-1 text-sm font-semibold">
+            {teach.state === 'done' ? '¡Listo! Momo responderá así la próxima vez.' : teach.state === 'error' ? teach.message : 'Cambiaste la respuesta de Momo. ¿Quieres que responda así la próxima vez?'}
+          </p>
+          {(teach.state === 'ask' || teach.state === 'saving') && <>
+            <button type="button" disabled={teach.state === 'saving'} className={buttonClass('primary', 'sm')} onClick={async () => {
+              setTeach({ ...teach, state: 'saving' })
+              const res = await learnFromEdit(conversationId, teach.answer).catch(() => ({ error: 'No se pudo guardar. Recarga e intenta otra vez.' }))
+              setTeach(res.error ? { ...teach, state: 'error', message: res.error } : { ...teach, state: 'done' })
+            }}>{teach.state === 'saving' ? 'Guardando…' : 'Sí, enseñarle'}</button>
+            <button type="button" className={buttonClass('ghost', 'sm')} onClick={() => setTeach(null)}>No</button>
+          </>}
+          {(teach.state === 'done' || teach.state === 'error') && <button type="button" aria-label="Cerrar" className={buttonClass('ghost', 'sm')} onClick={() => setTeach(null)}><X className="h-4 w-4" aria-hidden /></button>}
+        </div>
+      )}
+
+      <ActionForm action={addMessage} onSuccess={() => {
+        if (mode === 'human' && editedFrom && draft.trim() && draft.trim() !== editedFrom.trim()) setTeach({ answer: draft.trim(), state: 'ask' })
+        setEditedFrom(null)
+        setDraft('')
+      }} className="rounded-3xl border border-line bg-white p-3">
         <input type="hidden" name="conversation_id" value={conversationId} />
         <input type="hidden" name="author" value={mode} />
         <div role="radiogroup" aria-label="¿Quién escribe?" className="mb-2 flex gap-1">
