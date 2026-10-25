@@ -2,7 +2,9 @@ import { Pencil, Plus, Sparkles, Trash2 } from 'lucide-react'
 import type { Metadata } from 'next'
 import { ActionForm, Badge, ButtonLink, CancelButton, Card, CardTitle, Checkbox, ConfirmAction, EmptyState, Input, Modal, PageTitle, SearchForm, SubmitButton, Tabs, TextArea, buttonClass } from '@/components/ui'
 import { addGap, deletePolicy, forgetMemory, savePersonality, savePolicy, saveProduct, setProductActive } from '@/features/conocimiento/actions'
+import { AnalyzeWeek } from '@/features/conocimiento/AnalyzeWeek'
 import { GapCard } from '@/features/conocimiento/GapCard'
+import { latestLearningReport } from '@/lib/ai/learning'
 import { PRODUCTS_PAGE, getAssistant, knowledgeCounts, listGaps, listMemory, listPolicies, listProducts, listTrainingSessions, type Policy, type ProductRow } from '@/features/conocimiento/queries'
 import { TrainMomo } from '@/features/conocimiento/TrainMomo'
 import { isAiConfigured } from '@/lib/env'
@@ -14,21 +16,21 @@ export const metadata: Metadata = { title: 'Lo que Momo sabe' }
 type Tab = 'probar' | 'memoria' | 'politicas' | 'productos' | 'dudas' | 'personalidad'
 const TABS: { id: Tab; label: string }[] = [
   { id: 'probar', label: 'Entrenar a Momo' },
-  { id: 'memoria', label: 'Memoria' },
+  { id: 'memoria', label: 'Aprendizaje' },
   { id: 'politicas', label: 'Políticas' },
   { id: 'productos', label: 'Productos' },
   { id: 'dudas', label: 'Dudas' },
   { id: 'personalidad', label: 'Personalidad' },
 ]
 
-function PolicyForm({ policy }: { policy?: Policy }) {
+function PolicyForm({ policy }: { policy?: Partial<Policy> & { title: string; content: string } }) {
   return (
     <ActionForm action={savePolicy} closeOnSuccess className="space-y-4">
-      {policy && <input type="hidden" name="id" value={policy.id} />}
+      {policy?.id && <input type="hidden" name="id" value={policy.id} />}
       <Input label="Título" name="title" defaultValue={policy?.title} required maxLength={120} placeholder="Despacho a regiones" />
       <TextArea label="Qué debe saber Momo" name="content" defaultValue={policy?.content} required rows={6} maxLength={4000}
         placeholder="Despachamos a todo Chile. A regiones el costo se cotiza según comuna y llega en 7 a 10 días hábiles." />
-      <div className="flex justify-end gap-2"><CancelButton /><SubmitButton>{policy ? 'Guardar cambios' : 'Agregar política'}</SubmitButton></div>
+      <div className="flex justify-end gap-2"><CancelButton /><SubmitButton>{policy?.id ? 'Guardar cambios' : 'Agregar política'}</SubmitButton></div>
     </ActionForm>
   )
 }
@@ -72,9 +74,63 @@ export default async function ConocimientoPage({ searchParams }: { searchParams:
       </div>
     )
   } else if (tab === 'memoria') {
-    const [memory, sessions] = await Promise.all([listMemory(session), listTrainingSessions(session)])
+    const [memory, sessions, report] = await Promise.all([listMemory(session), listTrainingSessions(session), latestLearningReport(session)])
+    const r = report?.data
     content = (
       <div className="space-y-5">
+        <Card className="space-y-4 p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <CardTitle>Lo que Momo aprendió esta semana</CardTitle>
+              <p className="text-sm text-muted">{report ? `Análisis del ${formatShortDate(report.period_start)} al ${formatShortDate(report.period_end)}` : 'Momo revisa las conversaciones, entrenamientos y dudas de los últimos 7 días y te dice qué mejorar.'}</p>
+            </div>
+            {editable && <AnalyzeWeek hasReport={Boolean(report)} aiReady={isAiConfigured()} />}
+          </div>
+          {r && (
+            <div className="space-y-5">
+              <p className="rounded-2xl bg-brand-50 p-4">{r.resumen}</p>
+              <ul className="flex flex-wrap gap-2 text-sm">
+                {[[r.datos.conversaciones, 'conversaciones'], [r.datos.entrenamientos, 'entrenamientos'], [r.datos.ventas, 'ventas cerradas'], [r.datos.dudas, 'dudas pendientes']].map(([n, l]) => (
+                  <li key={l} className="rounded-full bg-surface px-3 py-1.5 ring-1 ring-line"><b>{n}</b> {l}</li>
+                ))}
+              </ul>
+              {r.preguntas_frecuentes.length > 0 && (
+                <section className="space-y-2"><h3 className="font-extrabold">Lo que más preguntan</h3>
+                  <ul className="space-y-1.5">{r.preguntas_frecuentes.map((p) => (
+                    <li key={p.pregunta} className="flex flex-wrap items-center gap-2 text-sm">
+                      <span className="min-w-0 flex-1">{p.pregunta}</span>
+                      <span className="text-xs text-muted">{p.veces} {p.veces === 1 ? 'vez' : 'veces'}</span>
+                      <Badge tone={p.tiene_respuesta ? 'success' : 'danger'}>{p.tiene_respuesta ? 'Momo sabe' : 'Falta enseñarle'}</Badge>
+                    </li>))}</ul>
+                </section>
+              )}
+              {r.objeciones.length > 0 && (
+                <section className="space-y-2"><h3 className="font-extrabold">Objeciones de los clientes</h3>
+                  <ul className="space-y-2">{r.objeciones.map((o) => (
+                    <li key={o.objecion} className="rounded-2xl bg-surface p-3 text-sm"><p className="font-bold">«{o.objecion}»</p><p className="mt-1 text-muted">Cómo responder: {o.como_responder}</p></li>))}</ul>
+                </section>
+              )}
+              {r.lo_que_funciono.length > 0 && (
+                <section className="space-y-2"><h3 className="font-extrabold">Lo que funcionó</h3>
+                  <ul className="space-y-2">{r.lo_que_funciono.map((l) => (
+                    <li key={l.situacion} className="rounded-2xl bg-success-soft p-3 text-sm"><p className="font-bold text-success">{l.situacion}</p><p className="mt-1">{l.respuesta}</p></li>))}</ul>
+                </section>
+              )}
+              {r.politicas_sugeridas.length > 0 && (
+                <section className="space-y-2"><h3 className="font-extrabold">Políticas que Momo te sugiere agregar</h3>
+                  <p className="text-xs text-muted">Revisa cada una y completa lo que diga [definir: …] antes de guardarla.</p>
+                  <ul className="space-y-2">{r.politicas_sugeridas.map((p) => (
+                    <li key={p.titulo} className="flex flex-wrap items-start gap-3 rounded-2xl border border-line p-3 text-sm">
+                      <div className="min-w-0 flex-[1_1_240px]"><p className="font-bold">{p.titulo}</p><p className="mt-1 whitespace-pre-line">{p.contenido}</p><p className="mt-1 text-xs text-muted">Por qué: {p.por_que}</p></div>
+                      {editable && <Modal trigger={<><Plus className="h-4 w-4" aria-hidden />Revisar y agregar</>} triggerSize="sm" title="Agregar política sugerida" size="lg"
+                        description="Ajusta el texto y completa lo que falte. Momo la usará tal cual."><PolicyForm policy={{ title: p.titulo, content: p.contenido }} /></Modal>}
+                    </li>))}</ul>
+                </section>
+              )}
+            </div>
+          )}
+        </Card>
+        <h2 className="pt-2 font-display text-xl font-bold">Memoria de Momo</h2>
         <p className="max-w-3xl text-sm text-muted">Cada vez que en el entrenamiento tocas <b>Bien</b> o <b>Corregir</b>, la respuesta queda aquí. Momo usa las 25 más recientes como ejemplo para responder a tus clientes; las corregidas pesan más.</p>
         {memory.length === 0 ? (
           <EmptyState title="Momo aún no tiene recuerdos" description="Entrénalo en la pestaña “Entrenar a Momo” y marca sus respuestas con Bien o Corregir." />

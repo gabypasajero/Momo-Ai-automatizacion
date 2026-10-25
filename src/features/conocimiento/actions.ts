@@ -263,3 +263,22 @@ export async function forgetMemory(_prev: ActionState, form: FormData): Promise<
     return ok('Momo olvidó esa respuesta.')
   })
 }
+
+/** "Analizar mi semana": Momo revisa conversaciones, entrenamientos y dudas y arma su resumen. */
+export async function analyzeWeek(): Promise<{ ok?: boolean; empty?: boolean; error?: string }> {
+  let session
+  try {
+    session = await requireRole(EDITORS)
+  } catch (error) {
+    return { error: describeError(error) }
+  }
+  try {
+    const { buildLearningReport } = await import('@/lib/ai/learning')
+    const result = await buildLearningReport(session)
+    refresh()
+    return result.empty ? { empty: true } : { ok: true }
+  } catch (error) {
+    if (error instanceof SyntaxError) return { error: 'Momo no pudo ordenar el resumen. Intenta otra vez.' }
+    return { error: describeAiError(error) }
+  }
+}
