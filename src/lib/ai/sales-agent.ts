@@ -4,7 +4,7 @@ import { CHANNELS, type Channel } from '@/config/sales'
 import { formatClp } from '@/lib/format'
 import type { Session } from '@/lib/session'
 import { describeHits, searchCatalog } from './catalog'
-import { defineTool, runAgent } from './engine'
+import { defineTool, runAgent, type AgentImage } from './engine'
 import { modelFor } from './runtime'
 
 /**
@@ -17,6 +17,8 @@ import { modelFor } from './runtime'
 interface Transcript {
   author: 'client' | 'ai' | 'human' | 'system'
   body: string | null
+  /** El cliente adjuntó una foto en este mensaje. */
+  photo?: boolean
 }
 
 interface Context {
@@ -26,6 +28,8 @@ interface Context {
   sale: { title: string | null; value_clp: number; delivery_clp: number } | null
   messages: Transcript[]
   conversationId: string | null
+  /** Fotos recientes del cliente (referencias o imágenes para un mueble personalizado). */
+  images?: AgentImage[]
 }
 
 async function businessPrompt(session: Session) {
@@ -49,6 +53,7 @@ async function businessPrompt(session: Session) {
 - Para precios, medidas y productos usa buscar_productos. Nunca inventes precios, medidas, plazos, stock ni políticas.
 - Si el cliente pregunta algo que no está en las políticas ni en el catálogo, usa registrar_duda con la pregunta y responde que lo confirmas en breve.
 - Si pide algo a medida o fuera de catálogo (por ejemplo cocinas a medida), ofrece derivarlo con ${handoff}.
+- Si el cliente envía una foto: mírala y coméntala con cariño (qué se ve, colores, personaje). Si es para un mueble personalizado, di si sirve para imprimir (nítida y de buen tamaño; si se ve pixelada, pide una de mejor calidad), pregunta en qué mueble la quiere y ofrece el diseñador de la web para ver la vista previa. Si es una foto de un espacio o de un mueble de referencia, úsala para entender medidas y estilo y deriva lo que sea a medida.
 - Avanza la venta: confirma lo que falta (modelo, color, medidas, comuna), entrega el total si lo conoces y explica cómo pagar.
 
 ## Políticas del negocio
@@ -59,7 +64,7 @@ ${policies}`
 
 function transcriptText(ctx: Context) {
   const who = { client: 'Cliente', ai: 'Momo', human: 'Equipo', system: 'Sistema' } as const
-  const lines = ctx.messages.filter((m) => m.body).slice(-30).map((m) => `${who[m.author]}: ${m.body}`)
+  const lines = ctx.messages.filter((m) => m.body || m.photo).slice(-30).map((m) => `${who[m.author]}: ${m.photo ? '[envió una foto] ' : ''}${m.body ?? ''}`.trim())
   const sale = ctx.sale?.title
     ? `\nInterés registrado: ${ctx.sale.title}${ctx.sale.value_clp ? ` · ${formatClp(ctx.sale.value_clp)}` : ''}${ctx.sale.delivery_clp ? ` + despacho ${formatClp(ctx.sale.delivery_clp)}` : ''}`
     : ''
@@ -101,7 +106,7 @@ async function reply(session: Session, ctx: Context, { allowGaps }: { allowGaps:
   const result = await runAgent(session, {
     feature: 'vendedor', system, claudeModel: model, effort: 'medium',
     tools: allowGaps ? [buscarProductos, registrarDuda] : [buscarProductos],
-    messages: [{ role: 'user', text: transcriptText(ctx) }],
+    messages: [{ role: 'user', text: transcriptText(ctx), images: ctx.images }],
   })
   if (result.refused) return { error: 'Momo no puede responder este mensaje. Respóndelo tú.' }
   const text = result.text
@@ -135,10 +140,10 @@ export async function suggestReply(session: Session, conversationId: string): Pr
  * Entrenar a Momo: conversación de práctica completa (no se guarda). Lo que Momo no sabe
  * queda anotado en "Dudas" para que el equipo se lo enseñe.
  */
-export async function trainReply(session: Session, messages: { author: 'client' | 'ai'; body: string }[]) {
+export async function trainReply(session: Session, messages: { author: 'client' | 'ai'; body: string; photo?: boolean }[], images: AgentImage[] = []) {
   return reply(session, {
     channel: 'marketplace', customer: 'un cliente de práctica', comuna: null, sale: null,
-    messages, conversationId: null,
+    messages, conversationId: null, images,
   }, { allowGaps: true })
 }
 

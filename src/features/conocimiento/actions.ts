@@ -188,17 +188,29 @@ export async function testMomo(question: string): Promise<TestResult> {
 export type TrainResult = { text?: string; error?: string; gaps?: string[] }
 
 /** Un turno del entrenamiento: Momo responde a la conversación de práctica completa. */
-export async function trainMomo(messages: { author: 'client' | 'ai'; body: string }[]): Promise<TrainResult> {
+const IMAGE_URL = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/
+
+export async function trainMomo(messages: { author: 'client' | 'ai'; body: string; image?: string }[]): Promise<TrainResult> {
   let session
   try {
     session = await requireRole(EDITORS)
   } catch (error) {
     return { error: describeError(error) }
   }
-  const clean = messages.slice(-30).map((m) => ({ author: m.author === 'ai' ? 'ai' as const : 'client' as const, body: String(m.body).trim().slice(0, 1000) })).filter((m) => m.body)
+  const recent = messages.slice(-30)
+  // Solo las 3 fotos más recientes viajan a la IA (las anteriores quedan como "[envió una foto]").
+  const images = recent.flatMap((m) => {
+    const match = m.author === 'client' && typeof m.image === 'string' && m.image.length < 2_800_000 ? IMAGE_URL.exec(m.image) : null
+    return match ? [{ mediaType: match[1] as 'image/jpeg' | 'image/png' | 'image/webp', data: match[2]! }] : []
+  }).slice(-3)
+  const clean = recent.map((m) => ({
+    author: m.author === 'ai' ? 'ai' as const : 'client' as const,
+    body: String(m.body ?? '').trim().slice(0, 1000),
+    photo: m.author === 'client' && Boolean(m.image),
+  })).filter((m) => m.body || m.photo)
   if (clean.at(-1)?.author !== 'client') return { error: 'Escribe un mensaje como lo haría un cliente.' }
   try {
-    const result = await trainReply(session, clean)
+    const result = await trainReply(session, clean, images)
     if (result.gaps?.length) refresh()
     return result.text ? { text: result.text, gaps: result.gaps } : { error: result.error ?? 'Momo no encontró qué responder.', gaps: result.gaps }
   } catch (error) {

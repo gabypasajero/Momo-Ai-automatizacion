@@ -20,6 +20,8 @@ const LEGACY_ROUTES: [string, string][] = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Las fotos del entrenamiento viajan reducidas (≈ 300 KB c/u); hasta 3 por mensaje.
+  experimental: { serverActions: { bodySizeLimit: '4mb' } },
   async redirects() {
     return [
       // /chat?c=<id> (extensión de Chrome anterior) conserva la conversación.
