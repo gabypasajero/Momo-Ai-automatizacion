@@ -18,7 +18,9 @@ export function aiProvider(): Provider | null {
   return claude ? 'claude' : null
 }
 
-export const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
+/** Modelos de Gemini en orden de preferencia: si Google retira uno (404), se prueba el siguiente. */
+const GEMINI_MODELS = [process.env.GEMINI_MODEL, 'gemini-flash-latest', 'gemini-3.8-flash'].filter((m): m is string => Boolean(m))
+let geminiModel = GEMINI_MODELS[0]!
 
 export interface ToolSpec<S extends z.ZodObject = z.ZodObject> {
   name: string
@@ -94,22 +96,29 @@ async function runGemini(session: Session, o: AgentOptions): Promise<AgentResult
   let inputTokens = 0, outputTokens = 0, text = '', refused = false
 
   for (let i = 0; i < 6; i++) {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY ?? '' },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: o.system }] },
-        contents,
-        tools: declarations.length ? [{ functionDeclarations: declarations }] : undefined,
-        generationConfig: { maxOutputTokens: 2048, temperature: 0.4 },
-      }),
+    const body = JSON.stringify({
+      systemInstruction: { parts: [{ text: o.system }] },
+      contents,
+      tools: declarations.length ? [{ functionDeclarations: declarations }] : undefined,
+      generationConfig: { maxOutputTokens: 2048, temperature: 0.4 },
     })
-    const data = await res.json().catch(() => ({})) as {
+    let res: Response | null = null
+    let data: {
       candidates?: { content?: GeminiContent; finishReason?: string }[]
       usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number }
       error?: { message?: string }
+    } = {}
+    for (const model of [geminiModel, ...GEMINI_MODELS.filter((m) => m !== geminiModel)]) {
+      res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY ?? '' },
+        body,
+      })
+      data = await res.json().catch(() => ({}))
+      if (res.status !== 404) { geminiModel = model; break }
+      console.error('IA: modelo de Gemini no disponible', model)
     }
-    if (!res.ok) throw new GeminiError(res.status, data.error?.message ?? `HTTP ${res.status}`)
+    if (!res?.ok) throw new GeminiError(res?.status ?? 500, data.error?.message ?? `HTTP ${res?.status}`)
     inputTokens += data.usageMetadata?.promptTokenCount ?? 0
     outputTokens += data.usageMetadata?.candidatesTokenCount ?? 0
 
@@ -137,7 +146,7 @@ async function runGemini(session: Session, o: AgentOptions): Promise<AgentResult
 
   // La capa gratuita de Gemini no tiene costo; se registra igual para ver el uso.
   const { error } = await session.db.from('ai_usage').insert({
-    organization_id: session.org.id, feature: o.feature, model: GEMINI_MODEL,
+    organization_id: session.org.id, feature: o.feature, model: geminiModel,
     input_tokens: inputTokens, output_tokens: outputTokens, cache_read_tokens: 0, cost_usd: 0,
   })
   if (error) console.error('ai_usage: no se pudo registrar', error.message)
